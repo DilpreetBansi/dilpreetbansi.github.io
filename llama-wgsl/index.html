@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>llama-wgsl · LLM inference on WebGPU</title>
+<meta name="description" content="Run SmolLM2 on your GPU, in the browser, with hand-written WGSL kernels. No server, no dependencies.">
+<link rel="icon" href="docs/logo.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="app.css">
+</head>
+<body>
+<header class="top">
+  <a class="brand" href="./">
+    <svg class="logo" viewBox="0 0 32 32" aria-hidden="true">
+      <defs><linearGradient id="lg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#8b5cf6"/><stop offset="1" stop-color="#22d3ee"/></linearGradient></defs>
+      <rect x="3" y="3" width="26" height="26" rx="7" fill="none" stroke="url(#lg)" stroke-width="2"/>
+      <g fill="url(#lg)"><rect x="8" y="8" width="4" height="4" rx="1"/><rect x="14" y="8" width="4" height="4" rx="1" opacity=".55"/><rect x="20" y="8" width="4" height="4" rx="1"/><rect x="8" y="14" width="4" height="4" rx="1" opacity=".55"/><rect x="14" y="14" width="4" height="4" rx="1"/><rect x="20" y="14" width="4" height="4" rx="1" opacity=".55"/><rect x="8" y="20" width="4" height="4" rx="1"/><rect x="14" y="20" width="4" height="4" rx="1" opacity=".55"/><rect x="20" y="20" width="4" height="4" rx="1"/></g>
+    </svg>
+    <span class="name">llama<span class="dash">-</span>wgsl</span>
+  </a>
+  <p class="tagline">A language model running on <em>your</em> GPU. Hand-written WGSL kernels, zero dependencies, no server.</p>
+  <a class="gh" href="https://github.com/DilpreetBansi/llama-wgsl" target="_blank" rel="noopener">
+    <svg viewBox="0 0 16 16" aria-hidden="true"><path fill="currentColor" d="M8 0C3.58 0 0 3.58 0 8a8 8 0 0 0 5.47 7.59c.4.07.55-.17.55-.38v-1.33c-2.23.48-2.7-1.07-2.7-1.07-.36-.92-.89-1.17-.89-1.17-.73-.5.05-.49.05-.49.8.06 1.23.83 1.23.83.72 1.22 1.87.87 2.33.66.07-.52.28-.87.5-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82a7.6 7.6 0 0 1 4 0c1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48v2.2c0 .21.15.46.55.38A8 8 0 0 0 16 8c0-4.42-3.58-8-8-8z"/></svg>
+    Source
+  </a>
+</header>
+
+<main class="layout">
+  <section class="chat" aria-label="Chat">
+    <div id="messages" class="messages" aria-live="polite">
+      <div class="welcome" id="welcome">
+        <h1>Chat with a model that never leaves your machine.</h1>
+        <p>llama-wgsl downloads <b>SmolLM2</b> once, streams the weights straight into GPU memory, and runs every layer with compute shaders written by hand in WGSL. Pick a model and press <b>Load</b>.</p>
+        <div class="chips" id="suggestions">
+          <button type="button">Explain what a GPU is to a ten-year-old, in two sentences.</button>
+          <button type="button">Give me three tips for a system design interview.</button>
+          <button type="button">Write a short poem about graphics cards.</button>
+        </div>
+      </div>
+    </div>
+    <form id="composer" class="composer" autocomplete="off">
+      <textarea id="prompt" rows="1" placeholder="Load a model to start chatting" disabled></textarea>
+      <button id="send" class="primary" type="submit" disabled>Send</button>
+      <button id="stop" type="button" hidden>Stop</button>
+    </form>
+  </section>
+
+  <aside class="side">
+    <div class="card" id="model-card">
+      <div class="card-h"><h2>Model</h2><span id="gpu-badge" class="badge">checking WebGPU…</span></div>
+      <label class="field"><span>Checkpoint</span>
+        <select id="model-select"></select>
+      </label>
+      <div class="row">
+        <button id="load" class="primary wide" type="button">Load</button>
+        <button id="new-chat" type="button" title="Start a new conversation" disabled>New chat</button>
+      </div>
+      <div id="progress" class="progress" hidden>
+        <div class="bar"><div id="progress-fill"></div></div>
+        <div id="progress-text" class="mono small"></div>
+      </div>
+      <p id="model-note" class="small muted"></p>
+    </div>
+
+    <div class="card">
+      <div class="card-h"><h2>Speed</h2><span id="speed-note" class="small muted">last reply</span></div>
+      <div class="bignum"><span id="tps" class="empty">—</span><small>tokens / s</small></div>
+      <canvas id="spark" height="56" aria-label="Tokens per second, token by token" hidden></canvas>
+      <dl class="stats mono">
+        <dt>prompt</dt><dd id="st-prefill">–</dd>
+        <dt>context</dt><dd id="st-ctx">–</dd>
+        <dt>weights</dt><dd id="st-weights">–</dd>
+        <dt>KV cache</dt><dd id="st-kv">–</dd>
+        <dt>dispatches</dt><dd id="st-dispatch">–</dd>
+        <dt>adapter</dt><dd id="st-adapter">–</dd>
+      </dl>
+      <div class="ctxbar" title="KV cache used"><div id="ctx-fill"></div></div>
+      <button id="bench" type="button" class="wide" disabled title="Clears the conversation">Run benchmark</button>
+      <pre id="bench-out" class="mono small" hidden></pre>
+    </div>
+
+    <div class="card">
+      <div class="card-h"><h2>Sampling</h2></div>
+      <label class="field slider"><span>Temperature <b id="v-temp">0.7</b></span><input id="temp" type="range" min="0" max="1.5" step="0.05" value="0.7"></label>
+      <label class="field slider"><span>Top-p <b id="v-topp">0.9</b></span><input id="topp" type="range" min="0.1" max="1" step="0.05" value="0.9"></label>
+      <label class="field slider"><span>Repetition penalty <b id="v-rep">1.1</b></span><input id="rep" type="range" min="1" max="1.5" step="0.05" value="1.1"></label>
+      <label class="field slider"><span>Max new tokens <b id="v-max">256</b></span><input id="maxtok" type="range" min="16" max="1024" step="16" value="256"></label>
+    </div>
+
+    <div class="card how">
+      <div class="card-h"><h2>What runs per token</h2></div>
+      <ol class="pipeline mono">
+        <li><span>embed</span> gather one row</li>
+        <li class="loop"><span>× layers</span>
+          <ol>
+            <li><span>rmsnorm</span></li>
+            <li><span>qkv</span> one fused matvec</li>
+            <li><span>rope</span> + write K/V cache</li>
+            <li><span>attention</span> GQA, a workgroup per head</li>
+            <li><span>o_proj</span> + residual add</li>
+            <li><span>rmsnorm</span></li>
+            <li><span>gate·up</span> fused with SiLU</li>
+            <li><span>down</span> + residual add</li>
+          </ol>
+        </li>
+        <li><span>lm_head</span> tied embedding matvec</li>
+        <li><span>sample</span> top-k / top-p on the CPU</li>
+      </ol>
+      <p class="small muted">All dispatches for a token go in one compute pass. Weights stay bf16 on the GPU and are widened to f32 in registers.</p>
+    </div>
+  </aside>
+</main>
+
+<footer class="foot small muted">
+  Built by <a href="https://dilpreetbansi.github.io" target="_blank" rel="noopener">Dilpreet Singh Bansi</a> ·
+  Outputs are tested against Hugging Face transformers ·
+  Model: <a href="https://huggingface.co/HuggingFaceTB/SmolLM2-135M-Instruct" target="_blank" rel="noopener">SmolLM2</a> (Apache-2.0)
+</footer>
+
+<script type="module" src="src/app.js"></script>
+</body>
+</html>
