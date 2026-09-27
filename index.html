@@ -104,6 +104,7 @@ section.block { padding: 104px 0 16px; }
 
 /* feature */
 .feature { display: grid; grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr); gap: 56px; align-items: start; }
+.feature.flip { grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr); margin-top: 96px; padding-top: 72px; border-top: 1px solid var(--rule); }
 .feature h3 { font: 400 64px/1 var(--serif); margin: 0 0 12px; letter-spacing: -0.02em; }
 .tagline { font-size: 20px; color: var(--ink); margin: 0 0 22px; font-weight: 500; }
 .feature p { color: var(--ink-2); margin: 0 0 22px; }
@@ -173,7 +174,9 @@ section.block { padding: 104px 0 16px; }
 .fine { margin-top: 80px; padding-top: 22px; border-top: 1px solid #333842; display: flex; justify-content: space-between; font: 12.5px var(--mono); color: #8d8a82; }
 
 @media (max-width: 980px) {
-  .hero .wrap, .feature, .pair, .about, .card.wide { grid-template-columns: 1fr; }
+  .hero .wrap, .feature, .feature.flip, .pair, .about, .card.wide { grid-template-columns: 1fr; }
+  .feature.flip { margin-top: 64px; padding-top: 48px; }
+  .feature.flip > figure { order: 2; }
   .grid { grid-template-columns: 1fr; }
   .numbers .wrap { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .stat:nth-child(3) { border-left: 0; padding-left: 0; }
@@ -796,7 +799,7 @@ section.block { padding: 104px 0 16px; }
 
 <section class="block" id="work">
   <div class="wrap">
-    <div class="section-head"><span class="num">01</span><h2>Featured project</h2><p>JavaScript · WebGPU · WGSL</p></div>
+    <div class="section-head"><span class="num">01</span><h2>Featured projects</h2><p>WebGPU · TypeScript · Postgres</p></div>
     <article class="feature">
       <div>
         <h3>llama-wgsl</h3>
@@ -920,6 +923,27 @@ section.block { padding: 104px 0 16px; }
         <div><b>53</b><span>tests: kernels against float64 references, parity runs on tiny random checkpoints, the tokenizer against Hugging Face.</span></div>
       </div>
     </div>
+
+    <article class="feature flip" id="yardline">
+      <figure class="plate shot">
+        <img src="assets/yardline.png" width="1600" height="1000" loading="lazy" alt="Yardline's quote editor: a customer's materials list matched to catalog items, priced with tier and volume discounts, with totals, HST, board feet and an activity timeline.">
+        <figcaption><span class="fig">Fig. 4</span>A pasted list becomes priced lines. Stock is checked per yard, a shortfall shows in red, and every change lands in the activity log.</figcaption>
+      </figure>
+      <div>
+        <h3>Yardline</h3>
+        <p class="tagline">Quoting and ordering for building-supply yards, full stack.</p>
+        <p>A contractor texts a messy materials list; the rep pastes it in, gets a priced quote in seconds, sends the customer a link, and turns the accepted quote into an order that reserves stock. React and TypeScript on a Hono API and Postgres. The live demo runs the same API and a real Postgres inside your browser.</p>
+        <ul class="points">
+          <li><b>Reads lists the way people write them.</b> “2x6-16' x 24”, “(12) 2x10x12 DF”, “5/8 type x drywall 4x8 - 60 sheets” are matched to the catalog with a confidence level and priced per thousand board feet, with tier and volume discounts and a margin floor.</li>
+          <li><b>Safe under concurrency.</b> Version checks stop lost updates. Orders reserve stock under row locks with an idempotency key, tested with transactions racing for the last boards on Postgres.</li>
+          <li><b>Live everywhere.</b> Events publish after commit: Server-Sent Events and LISTEN/NOTIFY on the server, a SharedWorker across tabs in the demo.</li>
+        </ul>
+        <div class="cta">
+          <a class="btn primary" href="https://dilpreetbansi.github.io/yardline/">Open the live demo <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 8h10M9 4l4 4-4 4"/></svg></a>
+          <a class="btn" href="https://github.com/DilpreetBansi/yardline">Read the source</a>
+        </div>
+      </div>
+    </article>
   </div>
 </section>
 
