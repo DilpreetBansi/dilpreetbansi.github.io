@@ -1,1827 +1,1307 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Dilpreet Singh Bansi</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700;800&family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-  <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-
-    :root {
-      --bg: #0a0a0b;
-      --bg-card: #111113;
-      --bg-elevated: #18181b;
-      --text-primary: #fafafa;
-      --text-secondary: #a1a1aa;
-      --text-tertiary: #52525b;
-      --accent: #8B9A46;
-      --accent-hover: #a0b050;
-      --accent-glow: rgba(139, 154, 70, 0.15);
-      --accent-purple: #a78bfa;
-      --accent-green: #34d399;
-      --accent-blue: #60a5fa;
-      --accent-orange: #fb923c;
-      --accent-cyan: #22d3ee;
-      --border: rgba(255,255,255,0.06);
-      --border-light: rgba(255,255,255,0.1);
-      --radius: 16px;
-    }
-
-    html { scroll-behavior: smooth; }
-
-    body {
-      font-family: 'Inter', -apple-system, sans-serif;
-      background: var(--bg);
-      color: var(--text-primary);
-      line-height: 1.6;
-      overflow-x: hidden;
-      -webkit-font-smoothing: antialiased;
-    }
-
-    ::selection { background: var(--accent); color: white; }
-
-    /* ===== SCROLL PROGRESS BAR ===== */
-    .scroll-progress {
-      position: fixed;
-      top: 0;
-      left: 0;
-      height: 2px;
-      background: linear-gradient(90deg, var(--accent), var(--accent-purple));
-      z-index: 9999;
-      transition: width 0.1s linear;
-    }
-
-    /* ===== THREE.JS CANVAS ===== */
-    #hero-canvas {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      z-index: 0;
-      pointer-events: none;
-    }
-
-    /* ===== LOADING SCREEN ===== */
-    .loader-screen {
-      position: fixed;
-      top: 0; left: 0;
-      width: 100%; height: 100%;
-      background: var(--bg);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      z-index: 10000;
-      transition: opacity 0.6s ease, visibility 0.6s ease;
-    }
-
-    .loader-screen.hidden {
-      opacity: 0;
-      visibility: hidden;
-      pointer-events: none;
-    }
-
-    .loader-content {
-      text-align: center;
-      position: relative;
-      width: 100%;
-      height: 100%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      flex-direction: column;
-    }
-
-    .loader-backdrop {
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      font-family: 'Space Grotesk', sans-serif;
-      font-weight: 800;
-      font-size: clamp(36px, 8vw, 120px);
-      color: var(--text-primary);
-      opacity: 0.05;
-      line-height: 1.1;
-      text-align: center;
-      width: 90%;
-      max-width: 100vw;
-      overflow-wrap: break-word;
-      word-wrap: break-word;
-      pointer-events: none;
-      letter-spacing: -2px;
-    }
-
-    .loader-counter {
-      font-family: 'Space Grotesk', sans-serif;
-      font-size: 64px;
-      font-weight: 700;
-      color: var(--accent);
-      letter-spacing: -2px;
-    }
-
-    .loader-label {
-      font-size: 12px;
-      color: var(--text-tertiary);
-      letter-spacing: 4px;
-      text-transform: uppercase;
-      margin-top: 12px;
-    }
-
-    /* ===== CONTAINER ===== */
-    .container {
-      max-width: 1200px;
-      margin: 0 auto;
-      padding: 0 2rem;
-      position: relative;
-      z-index: 2;
-    }
-
-    /* ===== NAVIGATION ===== */
-    nav {
-      position: fixed;
-      top: 0; left: 0;
-      width: 100%;
-      padding: 0 2rem;
-      z-index: 100;
-      transition: all 0.4s ease;
-    }
-
-    nav.scrolled {
-      background: rgba(18, 18, 20, 0.65);
-      backdrop-filter: blur(40px) saturate(1.8);
-      -webkit-backdrop-filter: blur(40px) saturate(1.8);
-      border-bottom: 1px solid rgba(255,255,255,0.08);
-      box-shadow: 0 1px 0 rgba(255,255,255,0.03) inset, 0 8px 32px rgba(0,0,0,0.3);
-    }
-
-    .nav-inner {
-      max-width: 1200px;
-      margin: 0 auto;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      height: 72px;
-    }
-
-    .nav-brand {
-      font-family: 'Space Grotesk', sans-serif;
-      font-size: 18px;
-      font-weight: 700;
-      color: var(--accent);
-      text-decoration: none;
-      letter-spacing: -0.5px;
-    }
-
-    .nav-links {
-      display: flex;
-      gap: 2.5rem;
-      list-style: none;
-    }
-
-    .nav-links a {
-      font-size: 13px;
-      font-weight: 500;
-      color: var(--text-secondary);
-      text-decoration: none;
-      transition: color 0.3s;
-      letter-spacing: 0.3px;
-      position: relative;
-    }
-
-    .nav-links a::after {
-      content: '';
-      position: absolute;
-      bottom: -4px;
-      left: 0;
-      width: 0;
-      height: 1px;
-      background: var(--accent);
-      transition: width 0.3s ease;
-    }
-
-    .nav-links a:hover { color: var(--text-primary); }
-    .nav-links a:hover::after { width: 100%; }
-
-    /* Mobile menu */
-    .nav-toggle {
-      display: none;
-      flex-direction: column;
-      gap: 5px;
-      background: none;
-      border: none;
-      cursor: pointer;
-      padding: 4px;
-    }
-    .nav-toggle span {
-      width: 22px;
-      height: 2px;
-      background: var(--text-secondary);
-      transition: all 0.3s;
-    }
-
-    /* ===== HERO ===== */
-    .hero {
-      min-height: 100vh;
-      display: flex;
-      align-items: center;
-      padding: 0 2rem;
-      position: relative;
-    }
-
-    .hero-content {
-      max-width: 1200px;
-      margin: 0 auto;
-      width: 100%;
-      padding-top: 72px;
-    }
-
-    .hero-eyebrow {
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 13px;
-      color: var(--accent);
-      letter-spacing: 2px;
-      text-transform: uppercase;
-      margin-bottom: 1.5rem;
-      opacity: 0;
-      transform: translateY(20px);
-      animation: fadeUp 0.8s ease 0.3s forwards;
-    }
-
-    .hero h1 {
-      font-family: 'Space Grotesk', sans-serif;
-      font-size: clamp(40px, 6.5vw, 88px);
-      font-weight: 800;
-      line-height: 1.05;
-      letter-spacing: -2px;
-      margin-bottom: 1.5rem;
-      opacity: 0;
-      transform: translateY(30px);
-      animation: fadeUp 0.8s ease 0.5s forwards;
-    }
-
-    .hero h1 .accent-word {
-      background: linear-gradient(135deg, var(--accent), var(--accent-purple));
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
-    }
-
-    .hero-subtitle {
-      font-size: 17px;
-      color: var(--text-secondary);
-      max-width: 560px;
-      line-height: 1.7;
-      font-weight: 400;
-      margin-bottom: 2.5rem;
-      opacity: 0;
-      transform: translateY(20px);
-      animation: fadeUp 0.8s ease 0.7s forwards;
-    }
-
-    .role-ticker {
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 14px;
-      color: var(--accent);
-      margin-bottom: 2rem;
-      height: 22px;
-      overflow: hidden;
-      opacity: 0;
-      animation: fadeUp 0.8s ease 0.6s forwards;
-    }
-
-    .role-ticker span {
-      display: block;
-      transition: transform 0.5s cubic-bezier(0.23, 1, 0.32, 1);
-    }
-
-    .hero-cta {
-      display: flex;
-      gap: 1rem;
-      opacity: 0;
-      transform: translateY(20px);
-      animation: fadeUp 0.8s ease 0.9s forwards;
-    }
-
-    @keyframes fadeUp {
-      to { opacity: 1; transform: translateY(0); }
-    }
-
-    /* ===== BUTTONS ===== */
-    .btn {
-      padding: 12px 28px;
-      border-radius: 10px;
-      border: 1px solid var(--border-light);
-      font-size: 14px;
-      font-weight: 500;
-      cursor: pointer;
-      text-decoration: none;
-      transition: all 0.3s ease;
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      font-family: 'Inter', sans-serif;
-    }
-
-    .btn-primary {
-      background: var(--accent);
-      color: white;
-      border-color: var(--accent);
-    }
-    .btn-primary:hover {
-      background: var(--accent-hover);
-      border-color: var(--accent-hover);
-      box-shadow: 0 0 30px var(--accent-glow);
-      transform: translateY(-2px);
-    }
-
-    .btn-secondary {
-      background: transparent;
-      color: var(--text-primary);
-    }
-    .btn-secondary:hover {
-      background: var(--bg-elevated);
-      border-color: var(--border-light);
-      transform: translateY(-2px);
-    }
-
-    /* ===== SECTION STYLES ===== */
-    .section { padding: 7rem 0; }
-
-    .section-label {
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 12px;
-      color: var(--accent);
-      letter-spacing: 3px;
-      text-transform: uppercase;
-      margin-bottom: 1rem;
-    }
-
-    .section-title {
-      font-family: 'Space Grotesk', sans-serif;
-      font-size: clamp(32px, 4vw, 52px);
-      font-weight: 800;
-      line-height: 1.1;
-      letter-spacing: -1px;
-      margin-bottom: 1rem;
-    }
-
-    .section-subtitle {
-      font-size: 16px;
-      color: var(--text-secondary);
-      max-width: 560px;
-      line-height: 1.7;
-    }
-
-    .section-header { margin-bottom: 4rem; }
-
-    /* ===== BENTO GRID ===== */
-    .bento-grid {
-      display: grid;
-      grid-template-columns: repeat(12, 1fr);
-      gap: 1.25rem;
-    }
-
-    .bento-card {
-      background: rgba(22, 22, 26, 0.6);
-      backdrop-filter: blur(24px) saturate(1.4);
-      -webkit-backdrop-filter: blur(24px) saturate(1.4);
-      border: 1px solid rgba(255,255,255,0.07);
-      border-radius: var(--radius);
-      padding: 2rem;
-      transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
-      position: relative;
-      overflow: hidden;
-      box-shadow: 0 1px 0 rgba(255,255,255,0.04) inset, 0 4px 24px rgba(0,0,0,0.15);
-    }
-
-    .bento-card::before {
-      content: '';
-      position: absolute;
-      top: 0; left: 0;
-      width: 100%; height: 100%;
-      background: radial-gradient(600px circle at var(--mouse-x, 50%) var(--mouse-y, 50%), rgba(139,154,70,0.06), transparent 40%);
-      pointer-events: none;
-      opacity: 0;
-      transition: opacity 0.3s;
-    }
-
-    .bento-card:hover::before { opacity: 1; }
-
-    .bento-card:hover {
-      border-color: rgba(255,255,255,0.12);
-      transform: translateY(-4px);
-      box-shadow: 0 1px 0 rgba(255,255,255,0.06) inset, 0 24px 48px rgba(0,0,0,0.35);
-    }
-
-    .bento-stats { grid-column: span 5; }
-    .bento-skills { grid-column: span 7; grid-row: span 2; }
-    .bento-edu { grid-column: span 5; }
-    .bento-philosophy { grid-column: span 12; }
-
-    .card-label {
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 11px;
-      color: var(--text-tertiary);
-      letter-spacing: 2px;
-      text-transform: uppercase;
-      margin-bottom: 1.5rem;
-    }
-
-    /* Stats */
-    .stats-grid {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 2rem;
-    }
-
-    .stat-number {
-      font-family: 'Space Grotesk', sans-serif;
-      font-size: 36px;
-      font-weight: 800;
-      color: var(--text-primary);
-      line-height: 1;
-      margin-bottom: 0.5rem;
-    }
-
-    .stat-number .accent { color: var(--accent); }
-
-    .stat-label {
-      font-size: 13px;
-      color: var(--text-secondary);
-      line-height: 1.5;
-    }
-
-    /* Skills */
-    .skill-category { margin-bottom: 1.25rem; }
-
-    .skill-cat-label {
-      font-size: 11px;
-      color: var(--text-tertiary);
-      letter-spacing: 1px;
-      text-transform: uppercase;
-      margin-bottom: 0.6rem;
-      display: block;
-    }
-
-    .skills-wrap { display: flex; flex-wrap: wrap; gap: 6px; }
-
-    .skill-pill {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      padding: 5px 12px;
-      background: var(--bg-elevated);
-      border: 1px solid var(--border);
-      border-radius: 20px;
-      font-size: 12px;
-      color: var(--text-secondary);
-      transition: all 0.3s ease;
-      cursor: default;
-      white-space: nowrap;
-    }
-
-    .skill-pill:hover {
-      background: var(--accent);
-      color: white;
-      border-color: var(--accent);
-      transform: translateY(-2px);
-      box-shadow: 0 4px 12px var(--accent-glow);
-    }
-
-    .skill-pill img {
-      width: 14px; height: 14px;
-      filter: grayscale(0.4) brightness(0.8);
-      transition: filter 0.3s;
-    }
-    .skill-pill:hover img { filter: grayscale(0) brightness(1.2); }
-
-    .skill-dot {
-      width: 6px; height: 6px;
-      border-radius: 50%;
-      background: var(--accent);
-    }
-
-    /* Education */
-    .edu-item {
-      padding-bottom: 1.25rem;
-      margin-bottom: 1.25rem;
-      border-bottom: 1px solid var(--border);
-    }
-    .edu-item:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
-
-    .edu-degree {
-      font-family: 'Space Grotesk', sans-serif;
-      font-size: 16px;
-      font-weight: 700;
-      margin-bottom: 0.25rem;
-    }
-    .edu-school { font-size: 13px; color: var(--text-secondary); margin-bottom: 0.25rem; }
-    .edu-meta { font-size: 12px; color: var(--text-tertiary); }
-
-    /* Philosophy card */
-    .philosophy-text {
-      font-size: 20px;
-      font-weight: 300;
-      line-height: 1.7;
-      color: var(--text-secondary);
-    }
-    .philosophy-text em {
-      color: var(--text-primary);
-      font-style: normal;
-      font-weight: 500;
-    }
-
-    /* ===== PROJECTS ===== */
-    .projects-grid {
-      display: flex;
-      flex-direction: column;
-      gap: 1.5rem;
-    }
-
-    .project-card {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      background: rgba(22, 22, 26, 0.55);
-      backdrop-filter: blur(20px) saturate(1.3);
-      -webkit-backdrop-filter: blur(20px) saturate(1.3);
-      border: 1px solid rgba(255,255,255,0.07);
-      border-radius: var(--radius);
-      overflow: hidden;
-      transition: all 0.5s cubic-bezier(0.23, 1, 0.32, 1);
-      position: relative;
-      box-shadow: 0 1px 0 rgba(255,255,255,0.03) inset, 0 4px 24px rgba(0,0,0,0.15);
-    }
-
-    .project-card::before {
-      content: '';
-      position: absolute;
-      left: 0; top: 0;
-      width: 3px; height: 100%;
-      background: var(--project-color);
-      opacity: 0;
-      transition: opacity 0.4s;
-    }
-
-    .project-card:hover::before { opacity: 1; }
-
-    .project-card:hover {
-      transform: translateY(-6px);
-      border-color: rgba(255,255,255,0.12);
-      box-shadow: 0 1px 0 rgba(255,255,255,0.05) inset, 0 30px 60px rgba(0,0,0,0.35);
-    }
-
-    .project-info {
-      padding: 2.5rem;
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
-    }
-
-    .project-num {
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 12px;
-      color: var(--text-tertiary);
-      margin-bottom: 1rem;
-    }
-
-    .project-tags { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 1rem; }
-
-    .project-tag {
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 10px;
-      padding: 3px 10px;
-      background: var(--bg-elevated);
-      border: 1px solid var(--border);
-      border-radius: 4px;
-      color: var(--text-tertiary);
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-    }
-
-    .project-name {
-      font-family: 'Space Grotesk', sans-serif;
-      font-size: 26px;
-      font-weight: 800;
-      margin-bottom: 0.5rem;
-      letter-spacing: -0.5px;
-    }
-
-    .project-role {
-      font-size: 14px;
-      color: var(--project-color, var(--accent));
-      font-weight: 500;
-      margin-bottom: 0.75rem;
-    }
-
-    .project-desc {
-      font-size: 14px;
-      color: var(--text-secondary);
-      line-height: 1.7;
-      margin-bottom: 1.5rem;
-    }
-
-    .project-stats-row {
-      display: flex;
-      gap: 2rem;
-      margin-bottom: 1.5rem;
-    }
-
-    .project-stat {
-      display: flex;
-      flex-direction: column;
-    }
-
-    .project-stat-value {
-      font-family: 'Space Grotesk', sans-serif;
-      font-size: 28px;
-      font-weight: 800;
-      color: var(--project-color, var(--accent));
-    }
-
-    .project-stat-label {
-      font-size: 11px;
-      color: var(--text-tertiary);
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-      margin-top: 0.25rem;
-    }
-
-    .project-link {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      padding: 10px 18px;
-      background: transparent;
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      color: var(--text-primary);
-      text-decoration: none;
-      font-size: 13px;
-      font-weight: 500;
-      transition: all 0.3s;
-      width: fit-content;
-    }
-    .project-link:hover {
-      background: var(--project-color, var(--accent));
-      border-color: var(--project-color, var(--accent));
-      color: white;
-    }
-
-    /* Project visual - 3D canvas */
-    .project-visual {
-      background: var(--bg-elevated);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      min-height: 300px;
-      position: relative;
-      overflow: hidden;
-    }
-
-    .project-visual canvas {
-      width: 100% !important;
-      height: 100% !important;
-    }
-
-    /* ===== EXPERIENCE ===== */
-    .timeline { position: relative; padding-left: 2rem; }
-
-    .timeline::before {
-      content: '';
-      position: absolute;
-      left: 0; top: 8px; bottom: 0;
-      width: 1px;
-      background: linear-gradient(180deg, var(--accent) 0%, var(--border) 100%);
-    }
-
-    .timeline-item {
-      position: relative;
-      padding-bottom: 3rem;
-      padding-left: 1rem;
-    }
-
-    .timeline-item::before {
-      content: '';
-      position: absolute;
-      left: -2rem;
-      top: 8px;
-      width: 9px; height: 9px;
-      border-radius: 50%;
-      background: var(--accent);
-      box-shadow: 0 0 0 4px var(--bg), 0 0 0 5px var(--accent);
-    }
-
-    .timeline-title {
-      font-family: 'Space Grotesk', sans-serif;
-      font-size: 18px;
-      font-weight: 700;
-      margin-bottom: 0.25rem;
-    }
-
-    .timeline-company {
-      font-size: 14px;
-      color: var(--accent);
-      font-weight: 500;
-      margin-bottom: 0.25rem;
-    }
-
-    .timeline-date {
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 12px;
-      color: var(--text-tertiary);
-      margin-bottom: 1rem;
-    }
-
-    .timeline-desc {
-      font-size: 14px;
-      color: var(--text-secondary);
-      line-height: 1.7;
-    }
-    .timeline-desc strong { color: var(--text-primary); font-weight: 600; }
-
-    /* ===== CONTACT ===== */
-    .contact-section { text-align: center; }
-
-    .contact-heading {
-      font-family: 'Space Grotesk', sans-serif;
-      font-size: clamp(32px, 5vw, 56px);
-      font-weight: 800;
-      margin-bottom: 1rem;
-      letter-spacing: -1px;
-    }
-
-    .contact-sub {
-      font-size: 16px;
-      color: var(--text-secondary);
-      margin-bottom: 3rem;
-    }
-
-    .contact-grid {
-      display: flex;
-      justify-content: center;
-      gap: 3rem;
-      flex-wrap: wrap;
-    }
-
-    .contact-card {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 0.75rem;
-      padding: 2rem 2.5rem;
-      background: rgba(22, 22, 26, 0.55);
-      backdrop-filter: blur(24px) saturate(1.4);
-      -webkit-backdrop-filter: blur(24px) saturate(1.4);
-      border: 1px solid rgba(255,255,255,0.07);
-      border-radius: var(--radius);
-      text-decoration: none;
-      color: var(--text-secondary);
-      transition: all 0.4s ease;
-      min-width: 180px;
-      box-shadow: 0 1px 0 rgba(255,255,255,0.04) inset, 0 4px 16px rgba(0,0,0,0.1);
-    }
-
-    .contact-card:hover {
-      border-color: rgba(139,154,70,0.4);
-      transform: translateY(-4px);
-      box-shadow: 0 1px 0 rgba(255,255,255,0.06) inset, 0 20px 40px rgba(0,0,0,0.3);
-    }
-
-    .contact-card svg {
-      width: 24px; height: 24px;
-      stroke: var(--text-tertiary);
-      fill: none;
-      stroke-width: 1.5;
-      transition: stroke 0.3s;
-    }
-    .contact-card:hover svg { stroke: var(--accent); }
-
-    .contact-card-label {
-      font-size: 11px;
-      letter-spacing: 2px;
-      text-transform: uppercase;
-      color: var(--text-tertiary);
-    }
-
-    .contact-card-value {
-      font-size: 14px;
-      font-weight: 500;
-      color: var(--text-primary);
-    }
-
-    /* ===== FOOTER ===== */
-    footer {
-      border-top: 1px solid var(--border);
-      padding: 2rem 0;
-      text-align: center;
-      color: var(--text-tertiary);
-      font-size: 13px;
-    }
-
-    /* ===== SCROLL REVEAL ===== */
-    [data-reveal] {
-      opacity: 0;
-      transform: translateY(40px);
-      transition: all 0.7s cubic-bezier(0.23, 1, 0.32, 1);
-    }
-    [data-reveal].revealed {
-      opacity: 1;
-      transform: translateY(0);
-    }
-
-    /* ===== COUNTER ===== */
-    .counter {
-      font-family: 'Space Grotesk', sans-serif;
-      font-weight: 800;
-    }
-
-    /* ===== RESPONSIVE ===== */
-    @media (max-width: 1024px) {
-      .bento-stats, .bento-skills { grid-column: span 6; grid-row: span 1; }
-      .bento-edu, .bento-philosophy { grid-column: span 6; }
-    }
-
-    @media (max-width: 768px) {
-      .nav-links { display: none; }
-      .nav-links.open {
-        display: flex;
-        flex-direction: column;
-        position: absolute;
-        top: 72px; left: 0;
-        width: 100%;
-        background: rgba(10,10,11,0.95);
-        backdrop-filter: blur(20px);
-        padding: 2rem;
-        gap: 1.5rem;
-        border-bottom: 1px solid var(--border);
-      }
-      .nav-toggle { display: flex; }
-
-      .bento-grid { grid-template-columns: 1fr; }
-      .bento-stats, .bento-skills, .bento-edu, .bento-philosophy { grid-column: span 1; }
-
-      .project-card { grid-template-columns: 1fr; }
-      .project-visual { min-height: 220px; }
-      .project-info { padding: 1.5rem; }
-
-      .hero h1 { letter-spacing: -1px; }
-
-      .stats-grid { grid-template-columns: repeat(2, 1fr); gap: 1.5rem; }
-
-      .contact-grid { flex-direction: column; align-items: center; }
-    }
-
-    @media (max-width: 480px) {
-      .stats-grid { grid-template-columns: 1fr; }
-      .hero-cta { flex-direction: column; }
-      .btn { width: 100%; justify-content: center; }
-    }
-  </style>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Dilpreet Singh Bansi · Software Engineer, AI/ML</title>
+<meta name="description" content="Software engineer building language-model systems from the kernel up: a WebGPU LLM engine, a PyTorch inference server, distributed training and interpretability tools, each tested against the reference.">
+<meta property="og:title" content="Dilpreet Singh Bansi · Software Engineer, AI/ML">
+<meta property="og:description" content="Language-model systems from the kernel up: WebGPU inference, PyTorch serving, distributed training, interpretability.">
+<meta property="og:image" content="https://dilpreetbansi.github.io/assets/og.png">
+<meta property="og:type" content="website">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+<style>
+:root {
+  --paper: #f4f1ea;
+  --paper-2: #ebe6db;
+  --plate: #fbfaf6;
+  --ink: #16181d;
+  --ink-2: #474c59;
+  --ink-3: #626776;
+  --rule: #d6cfc0;
+  --accent: #2e47e6;
+  --accent-ink: #2239c7;
+  --warm: #d9622b;
+  --serif: 'Instrument Serif', 'Iowan Old Style', Georgia, serif;
+  --sans: 'IBM Plex Sans', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --mono: 'IBM Plex Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+  --wrap: 1200px;
+}
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body {
+  margin: 0; background: var(--paper); color: var(--ink);
+  font: 17px/1.6 var(--sans); -webkit-font-smoothing: antialiased;
+  background-image: radial-gradient(var(--rule) 0.8px, transparent 0.8px);
+  background-size: 28px 28px; background-position: -14px -14px;
+}
+a { color: var(--accent-ink); text-decoration-thickness: 1px; text-underline-offset: 3px; }
+a svg { width: 16px; height: 16px; flex: none; }
+a:hover { color: var(--ink); }
+.wrap { max-width: var(--wrap); margin: 0 auto; padding: 0 32px; }
+.mono { font-family: var(--mono); }
+.chart { display: block; width: 100%; height: auto; }
+
+/* nav */
+.nav { position: sticky; top: 0; z-index: 10; background: rgba(244, 241, 234, 0.9); backdrop-filter: blur(8px); border-bottom: 1px solid var(--rule); }
+.nav .wrap { display: flex; align-items: center; justify-content: space-between; height: 72px; }
+.mark { display: flex; align-items: center; gap: 12px; color: var(--ink); text-decoration: none; font-weight: 600; letter-spacing: -0.01em; white-space: nowrap; }
+.mark .seal { width: 34px; height: 34px; border-radius: 9px; background: var(--ink); color: var(--paper); display: grid; place-items: center; font: 500 13px var(--mono); }
+.nav nav { display: flex; align-items: center; gap: 8px; }
+.nav nav a { color: var(--ink-2); text-decoration: none; font-size: 15px; padding: 10px 12px; border-radius: 8px; white-space: nowrap; }
+.nav nav a:hover { color: var(--ink); background: var(--paper-2); }
+.nav nav a.pill { color: #fff; background: var(--ink); padding: 10px 16px; margin-left: 6px; }
+.nav nav a.pill:hover { background: var(--accent); color: #fff; }
+
+/* buttons */
+.btn { display: inline-flex; align-items: center; gap: 10px; min-height: 48px; padding: 0 20px; border-radius: 12px; border: 1px solid var(--ink); color: var(--ink); text-decoration: none; font-weight: 500; font-size: 16px; background: transparent; }
+.btn:hover { background: var(--ink); color: var(--paper); }
+.btn.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+.btn.primary:hover { background: var(--ink); border-color: var(--ink); }
+.btn svg { width: 16px; height: 16px; }
+
+/* hero */
+.hero { padding: 88px 0 72px; }
+.hero .wrap { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); gap: 64px; align-items: center; }
+.eyebrow { font: 500 13px var(--mono); letter-spacing: 0.12em; text-transform: uppercase; color: var(--ink-3); margin: 0 0 22px; display: flex; align-items: center; gap: 10px; }
+.eyebrow::before { content: ''; width: 28px; height: 1px; background: var(--ink-3); }
+h1 { font: 400 clamp(46px, 6.4vw, 86px)/1.02 var(--serif); letter-spacing: -0.015em; margin: 0 0 28px; }
+h1 em { color: var(--accent); }
+.lede { font-size: 19px; color: var(--ink-2); max-width: 600px; margin: 0 0 34px; }
+.cta { display: flex; flex-wrap: wrap; gap: 12px; }
+.links { display: flex; flex-wrap: wrap; gap: 4px 26px; margin: 26px 0 0; padding: 0; list-style: none; font: 14px var(--mono); }
+.links a { color: var(--ink-2); text-decoration: none; display: inline-flex; align-items: center; gap: 8px; min-height: 44px; }
+.links a:hover { color: var(--accent); }
+.links svg { width: 18px; height: 18px; }
+
+.plate { margin: 0; background: var(--plate); border: 1px solid var(--rule); border-radius: 18px; padding: 24px; }
+figcaption { margin-top: 16px; font-size: 14px; line-height: 1.55; color: var(--ink-3); }
+figcaption .fig { font: 500 12px var(--mono); letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink); margin-right: 8px; }
+
+/* numbers */
+.numbers { border-top: 1px solid var(--rule); border-bottom: 1px solid var(--rule); background: rgba(251, 250, 246, 0.6); }
+.numbers .wrap { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); }
+.stat { padding: 34px 28px 30px; border-left: 1px solid var(--rule); }
+.stat:first-child { border-left: 0; padding-left: 0; }
+.stat b { display: block; font: 400 52px/1 var(--serif); letter-spacing: -0.01em; margin-bottom: 10px; }
+.stat span { display: block; font-size: 14.5px; color: var(--ink-2); line-height: 1.45; }
+
+/* sections */
+section.block { padding: 104px 0 16px; }
+.section-head { display: flex; align-items: baseline; gap: 18px; margin-bottom: 40px; border-bottom: 1px solid var(--ink); padding-bottom: 14px; }
+.section-head .num { font: 500 14px var(--mono); color: var(--accent); }
+.section-head h2 { font: 400 44px/1.1 var(--serif); margin: 0; letter-spacing: -0.01em; }
+.section-head p { margin: 0 0 0 auto; font: 13px var(--mono); color: var(--ink-3); }
+
+/* feature */
+.feature { display: grid; grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr); gap: 56px; align-items: start; }
+.feature h3 { font: 400 64px/1 var(--serif); margin: 0 0 12px; letter-spacing: -0.02em; }
+.tagline { font-size: 20px; color: var(--ink); margin: 0 0 22px; font-weight: 500; }
+.feature p { color: var(--ink-2); margin: 0 0 22px; }
+.points { list-style: none; padding: 0; margin: 0 0 32px; display: grid; gap: 14px; }
+.points li { padding-left: 26px; position: relative; color: var(--ink-2); font-size: 16px; }
+.points li::before { content: ''; position: absolute; left: 2px; top: 10px; width: 10px; height: 10px; border-radius: 3px; background: var(--accent); }
+.points b { color: var(--ink); font-weight: 600; }
+.shot img { display: block; width: 100%; height: auto; border-radius: 10px; border: 1px solid var(--rule); }
+.wide-fig { margin-top: 28px; }
+.scroll-x { overflow-x: auto; }
+@media (max-width: 980px) { .scroll-x .chart { min-width: 880px; } }
+.pair { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 28px; margin-top: 28px; align-items: start; }
+.facts { display: grid; gap: 0; align-content: start; }
+.facts div { padding: 16px 0; border-bottom: 1px solid var(--rule); display: grid; grid-template-columns: 110px 1fr; gap: 16px; align-items: baseline; }
+.facts div:last-child { border-bottom: 0; }
+.facts b { font: 400 30px/1 var(--serif); }
+.facts span { color: var(--ink-2); font-size: 15px; }
+
+/* project grid */
+.grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 28px; }
+.card { background: var(--plate); border: 1px solid var(--rule); border-radius: 18px; padding: 30px; display: flex; flex-direction: column; }
+.card.wide { grid-column: 1 / -1; display: grid; grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr); gap: 40px; align-items: center; }
+.card .kicker { font: 500 12px var(--mono); letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-3); margin: 0 0 10px; }
+.card h3 { font: 400 40px/1.05 var(--serif); margin: 0 0 12px; letter-spacing: -0.01em; }
+.card p { color: var(--ink-2); font-size: 16px; margin: 0 0 18px; }
+.card figure { margin: 4px 0 18px; padding: 18px; background: #fff; border: 1px solid var(--rule); border-radius: 12px; }
+.card figcaption { margin-top: 12px; font-size: 13px; }
+.chips { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 20px; padding: 0; list-style: none; }
+.chips li { font: 12.5px var(--mono); color: var(--ink); background: var(--paper-2); border-radius: 999px; padding: 6px 12px; }
+.card .more { margin-top: auto; display: inline-flex; align-items: center; gap: 8px; font: 500 14px var(--mono); text-decoration: none; min-height: 44px; }
+
+/* experience */
+.jobs { display: grid; gap: 0; }
+.job { display: grid; grid-template-columns: 250px minmax(0, 1fr); gap: 40px; padding: 34px 0; border-bottom: 1px solid var(--rule); }
+.job:last-child { border-bottom: 0; }
+.job .when { font: 13px var(--mono); color: var(--ink-3); }
+.job .org { font: 400 32px/1.1 var(--serif); margin: 6px 0 4px; color: var(--ink); }
+.job .role { font-size: 15px; color: var(--ink-2); }
+.job ul { margin: 0; padding: 0; list-style: none; display: grid; gap: 12px; }
+.job li { padding-left: 22px; position: relative; color: var(--ink-2); }
+.job li::before { content: ''; position: absolute; left: 0; top: 12px; width: 12px; height: 1px; background: var(--ink); }
+.job li b { color: var(--ink); font-weight: 600; }
+
+/* about */
+.about { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr); gap: 56px; }
+.about .say { font: 400 34px/1.28 var(--serif); margin: 0 0 24px; }
+.about p { color: var(--ink-2); }
+.side-cards { display: grid; gap: 20px; }
+.skills { display: grid; gap: 14px; margin: 0; }
+.skills div { display: grid; grid-template-columns: 120px 1fr; gap: 12px; }
+.skills dt { font: 500 12.5px var(--mono); color: var(--ink-3); text-transform: uppercase; letter-spacing: 0.06em; padding-top: 3px; }
+.skills dd { margin: 0; font-size: 15px; color: var(--ink); }
+.edu .org { font: 400 28px/1.1 var(--serif); margin: 0 0 6px; }
+.edu p { margin: 0; color: var(--ink-2); font-size: 15px; }
+.plate h4 { font: 500 12px var(--mono); letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-3); margin: 0 0 14px; }
+
+/* contact */
+.contact { margin-top: 110px; background: var(--ink); color: var(--paper); }
+.contact .wrap { padding-top: 96px; padding-bottom: 40px; }
+.contact h2 { font: 400 clamp(52px, 8vw, 104px)/1 var(--serif); margin: 0 0 22px; letter-spacing: -0.02em; }
+.contact h2 em { color: #9fb0ff; }
+.contact p { color: #c8c3b8; max-width: 560px; font-size: 18px; margin: 0 0 36px; }
+.contact .big { font: 400 clamp(24px, 3.2vw, 40px) var(--serif); color: var(--paper); text-decoration: none; border-bottom: 1px solid #5d6270; padding-bottom: 6px; }
+.contact .big:hover { color: #9fb0ff; border-color: #9fb0ff; }
+.contact .links a { color: #c8c3b8; }
+.contact .links a:hover { color: #fff; }
+.fine { margin-top: 80px; padding-top: 22px; border-top: 1px solid #333842; display: flex; justify-content: space-between; font: 12.5px var(--mono); color: #8d8a82; }
+
+@media (max-width: 980px) {
+  .hero .wrap, .feature, .pair, .about, .card.wide { grid-template-columns: 1fr; }
+  .grid { grid-template-columns: 1fr; }
+  .numbers .wrap { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .stat:nth-child(3) { border-left: 0; padding-left: 0; }
+  .stat { border-top: 1px solid var(--rule); }
+  .stat:nth-child(-n+2) { border-top: 0; }
+  .job { grid-template-columns: 1fr; gap: 14px; }
+  .nav nav a:not(.pill):not(.keep) { display: none; }
+  .hero { padding-top: 56px; }
+}
+@media (max-width: 560px) {
+  body { font-size: 16px; }
+  .wrap { padding: 0 20px; }
+  .nav nav a.keep { display: none; }
+  .stat { padding: 24px 0 22px 16px; }
+  .stat:nth-child(odd) { padding-left: 0; }
+  .stat:nth-child(2) { border-left: 1px solid var(--rule); }
+  .stat:nth-child(4) { border-left: 1px solid var(--rule); }
+  .stat b { font-size: 40px; }
+  .stat span { font-size: 13.5px; }
+  .feature h3 { font-size: 52px; }
+  .section-head { flex-wrap: wrap; }
+  .section-head p { margin: 0; width: 100%; }
+  .card { padding: 22px; }
+  .plate { padding: 18px; }
+  .skills div { grid-template-columns: 1fr; gap: 2px; }
+  .facts div { grid-template-columns: 90px 1fr; }
+  .fine { flex-direction: column; gap: 6px; }
+}
+</style>
 </head>
-<body>
-  <!-- Scroll Progress -->
-  <div class="scroll-progress" id="scrollProgress"></div>
+<body id="top">
 
-  <!-- Three.js Hero Background -->
-  <canvas id="hero-canvas"></canvas>
-
-  <!-- Loading Screen -->
-  <div class="loader-screen" id="loaderScreen">
-    <div class="loader-content">
-      <div class="loader-backdrop">DILPREET SINGH BANSI</div>
-      <div class="loader-counter" id="loaderCounter">0</div>
-      <div class="loader-label">Loading</div>
-    </div>
+<header class="nav">
+  <div class="wrap">
+    <a class="mark" href="#top"><span class="seal">DB</span>Dilpreet Singh Bansi</a>
+    <nav aria-label="Sections">
+      <a href="#work">Work</a>
+      <a href="#experience">Experience</a>
+      <a href="#about">About</a>
+      <a class="keep" href="assets/Dilpreet_Singh_Bansi_Resume.pdf">Résumé</a>
+      <a class="pill" href="mailto:bansidilpreet@gmail.com">Email me</a>
+    </nav>
   </div>
+</header>
 
-  <!-- Navigation -->
-  <nav id="mainNav">
-    <div class="nav-inner">
-      <a href="#" class="nav-brand">DSB</a>
-      <button class="nav-toggle" id="navToggle" aria-label="Toggle menu">
-        <span></span><span></span><span></span>
-      </button>
-      <ul class="nav-links" id="navLinks">
-        <li><a href="#about">About</a></li>
-        <li><a href="#projects">Projects</a></li>
-        <li><a href="#experience">Experience</a></li>
-        <li><a href="#contact">Contact</a></li>
+<main>
+<section class="hero">
+  <div class="wrap">
+    <div>
+      <p class="eyebrow">Software engineer · AI/ML</p>
+      <h1>I build language-model systems <em>from the kernel up.</em></h1>
+      <p class="lede">I'm a software developer on the AI/ML team at SOTI, building natural-language app generation into the company's low-code platform. On my own time I write inference engines, distributed training and interpretability tools from scratch, and I test every one against the reference implementation.</p>
+      <div class="cta">
+        <a class="btn primary" href="https://dilpreetbansi.github.io/llama-wgsl/">Run my LLM engine in your browser <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 8h10M9 4l4 4-4 4"/></svg></a>
+        <a class="btn" href="assets/Dilpreet_Singh_Bansi_Resume.pdf">Download résumé</a>
+      </div>
+      <ul class="links">
+        <li><a href="https://github.com/DilpreetBansi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 7l-5 5 5 5M16 7l5 5-5 5M14 4l-4 16"/></svg>GitHub</a></li>
+        <li><a href="https://www.linkedin.com/in/dilpreet-bansi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2M3 13h18"/></svg>LinkedIn</a></li>
+        <li><a href="mailto:bansidilpreet@gmail.com"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/></svg>bansidilpreet@gmail.com</a></li>
       </ul>
     </div>
-  </nav>
+    <figure class="plate">
+      <svg viewBox="0 0 479 501" role="img" aria-labelledby="fig0t" class="chart">
+<title id="fig0t">Attention pattern of GPT-2 layer 5 head 5 on a random token sequence repeated twice; in the second copy each token attends to the token that followed it the first time.</title>
+<rect x="34" y="30" width="17" height="17" rx="3" fill="#2e47e6"/>
+<rect x="53" y="30" width="17" height="17" rx="3" fill="#ebe6db" opacity=".55"/>
+<rect x="72" y="30" width="17" height="17" rx="3" fill="#ebe6db" opacity=".55"/>
+<rect x="91" y="30" width="17" height="17" rx="3" fill="#ebe6db" opacity=".55"/>
+<rect x="110" y="30" width="17" height="17" rx="3" fill="#ebe6db" opacity=".55"/>
+<rect x="129" y="30" width="17" height="17" rx="3" fill="#ebe6db" opacity=".55"/>
+<rect x="148" y="30" width="17" height="17" rx="3" fill="#ebe6db" opacity=".55"/>
+<rect x="167" y="30" width="17" height="17" rx="3" fill="#ebe6db" opacity=".55"/>
+<rect x="186" y="30" width="17" height="17" rx="3" fill="#ebe6db" opacity=".55"/>
+<rect x="205" y="30" width="17" height="17" rx="3" fill="#ebe6db" opacity=".55"/>
+<rect x="224" y="30" width="17" height="17" rx="3" fill="#ebe6db" opacity=".55"/>
+<rect x="243" y="30" width="17" height="17" rx="3" fill="#ebe6db" opacity=".55"/>
+<rect x="262" y="30" width="17" height="17" rx="3" fill="#ebe6db" opacity=".55"/>
+<rect x="281" y="30" width="17" height="17" rx="3" fill="#ebe6db" opacity=".55"/>
+<rect x="300" y="30" width="17" height="17" rx="3" fill="#ebe6db" opacity=".55"/>
+<rect x="319" y="30" width="17" height="17" rx="3" fill="#ebe6db" opacity=".55"/>
+<rect x="338" y="30" width="17" height="17" rx="3" fill="#ebe6db" opacity=".55"/>
+<rect x="357" y="30" width="17" height="17" rx="3" fill="#ebe6db" opacity=".55"/>
+<rect x="376" y="30" width="17" height="17" rx="3" fill="#ebe6db" opacity=".55"/>
+<rect x="395" y="30" width="17" height="17" rx="3" fill="#ebe6db" opacity=".55"/>
+<rect x="414" y="30" width="17" height="17" rx="3" fill="#ebe6db" opacity=".55"/>
+<rect x="433" y="30" width="17" height="17" rx="3" fill="#ebe6db" opacity=".55"/>
+<rect x="452" y="30" width="17" height="17" rx="3" fill="#ebe6db" opacity=".55"/>
+<rect x="34" y="49" width="17" height="17" rx="3" fill="#2e47e6"/>
+<rect x="53" y="49" width="17" height="17" rx="3" fill="#dfdcfe"/>
+<rect x="72" y="49" width="17" height="17" rx="3" fill="#ebe6db" opacity=".55"/>
+<rect x="91" y="49" width="17" height="17" rx="3" fill="#ebe6db" opacity=".55"/>
+<rect x="110" y="49" width="17" height="17" rx="3" fill="#ebe6db" opacity=".55"/>
+<rect x="129" y="49" width="17" height="17" rx="3" fill="#ebe6db" opacity=".55"/>
+<rect x="148" y="49" width="17" height="17" rx="3" fill="#ebe6db" opacity=".55"/>
+<rect x="167" y="49" width="17" height="17" rx="3" fill="#ebe6db" opacity=".55"/>
+<rect x="186" y="49" width="17" height="17" rx="3" fill="#ebe6db" opacity=".55"/>
+<rect x="205" y="49" width="17" height="17" rx="3" fill="#ebe6db" opacity=".55"/>
+<rect x="224" y="49" width="17" height="17" rx="3" fill="#ebe6db" opacity=".55"/>
+<rect x="243" y="49" width="17" height="17" rx="3" fill="#ebe6db" opacity=".55"/>
+<rect x="262" y="49" width="17" height="17" rx="3" fill="#ebe6db" opacity=".55"/>
+<rect x="281" y="49" width="17" height="17" rx="3" fill="#ebe6db" opacity=".55"/>
+<rect x="300" y="49" width="17" height="17" rx="3" fill="#ebe6db" opacity=".55"/>
+<rect x="319" y="49" width="17" height="17" rx="3" fill="#ebe6db" opacity=".55"/>
+<rect x="338" y="49" width="17" height="17" rx="3" fill="#ebe6db" opacity=".55"/>
+<rect x="357" y="49" width="17" height="17" rx="3" fill="#ebe6db" opacity=".55"/>
+<rect x="376" y="49" width="17" height="17" rx="3" fill="#ebe6db" opacity=".55"/>
+<rect x="395" y="49" width="17" height="17" rx="3" fill="#ebe6db" opacity=".55"/>
+<rect x="414" y="49" width="17" height="17" rx="3" fill="#ebe6db" opacity=".55"/>
+<rect x="433" y="49" width="17" height="17" rx="3" fill="#ebe6db" opacity=".55"/>
+<rect x="452" y="49" width="17" height="17" rx="3" fill="#ebe6db" opacity=".55"/>
+<rect x="34" y="68" width="17" height="17" rx="3" fill="#2f48e6"/>
+<rect x="53" y="68" width="17" height="17" rx="3" fill="#d3d1fd"/>
+<rect x="72" y="68" width="17" height="17" rx="3" fill="#ffffff"/>
+<rect x="91" y="68" width="17" height="17" rx="3" fill="#ebe6db" opacity=".55"/>
+<rect x="110" y="68" width="17" height="17" rx="3" fill="#ebe6db" opacity=".55"/>
+<rect x="129" y="68" width="17" height="17" rx="3" fill="#ebe6db" opacity=".55"/>
+<rect x="148" y="68" width="17" height="17" rx="3" fill="#ebe6db" opacity=".55"/>
+<rect x="167" y="68" width="17" height="17" rx="3" fill="#ebe6db" opacity=".55"/>
+<rect x="186" y="68" width="17" height="17" rx="3" fill="#ebe6db" opacity=".55"/>
+<rect x="205" y="68" width="17" height="17" rx="3" fill="#ebe6db" opacity=".55"/>
+<rect x="224" y="68" width="17" height="17" rx="3" fill="#ebe6db" opacity=".55"/>
+<rect x="243" y="68" width="17" height="17" rx="3" fill="#ebe6db" opacity=".55"/>
+<rect x="262" y="68" width="17" height="17" rx="3" fill="#ebe6db" opacity=".55"/>
+<rect x="281" y="68" width="17" height="17" rx="3" fill="#ebe6db" opacity=".55"/>
+<rect x="300" y="68" width="17" height="17" rx="3" fill="#ebe6db" opacity=".55"/>
+<rect x="319" y="68" width="17" height="17" rx="3" fill="#ebe6db" opacity=".55"/>
+<rect x="338" y="68" width="17" height="17" rx="3" fill="#ebe6db" opacity=".55"/>
+<rect x="357" y="68" width="17" height="17" rx="3" fill="#ebe6db" opacity=".55"/>
+<rect x="376" y="68" width="17" height="17" rx="3" fill="#ebe6db" opacity=".55"/>
+<rect x="395" y="68" width="17" height="17" rx="3" fill="#ebe6db" opacity=".55"/>
+<rect x="414" y="68" width="17" height="17" rx="3" fill="#ebe6db" opacity=".55"/>
+<rect x="433" y="68" width="17" height="17" rx="3" fill="#ebe6db" opacity=".55"/>
+<rect x="452" y="68" width="17" height="17" rx="3" fill="#ebe6db" opacity=".55"/>
+<rect x="34" y="87" width="17" height="17" rx="3" fill="#2f48e6"/>
+<rect x="53" y="87" width="17" height="17" rx="3" fill="#dcd9fe"/>
+<rect x="72" y="87" width="17" height="17" rx="3" fill="#e0ddfe"/>
+<rect x="91" y="87" width="17" height="17" rx="3" fill="#dfdbfe"/>
+<rect x="110" y="87" width="17" height="17" rx="3" fill="#ebe6db" opacity=".55"/>
+<rect x="129" y="87" width="17" height="17" rx="3" fill="#ebe6db" opacity=".55"/>
+<rect x="148" y="87" width="17" height="17" rx="3" fill="#ebe6db" opacity=".55"/>
+<rect x="167" y="87" width="17" height="17" rx="3" fill="#ebe6db" opacity=".55"/>
+<rect x="186" y="87" width="17" height="17" rx="3" fill="#ebe6db" opacity=".55"/>
+<rect x="205" y="87" width="17" height="17" rx="3" fill="#ebe6db" opacity=".55"/>
+<rect x="224" y="87" width="17" height="17" rx="3" fill="#ebe6db" opacity=".55"/>
+<rect x="243" y="87" width="17" height="17" rx="3" fill="#ebe6db" opacity=".55"/>
+<rect x="262" y="87" width="17" height="17" rx="3" fill="#ebe6db" opacity=".55"/>
+<rect x="281" y="87" width="17" height="17" rx="3" fill="#ebe6db" opacity=".55"/>
+<rect x="300" y="87" width="17" height="17" rx="3" fill="#ebe6db" opacity=".55"/>
+<rect x="319" y="87" width="17" height="17" rx="3" fill="#ebe6db" opacity=".55"/>
+<rect x="338" y="87" width="17" height="17" rx="3" fill="#ebe6db" opacity=".55"/>
+<rect x="357" y="87" width="17" height="17" rx="3" fill="#ebe6db" opacity=".55"/>
+<rect x="376" y="87" width="17" height="17" rx="3" fill="#ebe6db" opacity=".55"/>
+<rect x="395" y="87" width="17" height="17" rx="3" fill="#ebe6db" opacity=".55"/>
+<rect x="414" y="87" width="17" height="17" rx="3" fill="#ebe6db" opacity=".55"/>
+<rect x="433" y="87" width="17" height="17" rx="3" fill="#ebe6db" opacity=".55"/>
+<rect x="452" y="87" width="17" height="17" rx="3" fill="#ebe6db" opacity=".55"/>
+<rect x="34" y="106" width="17" height="17" rx="3" fill="#3049e6"/>
+<rect x="53" y="106" width="17" height="17" rx="3" fill="#dddafe"/>
+<rect x="72" y="106" width="17" height="17" rx="3" fill="#d2d1fd"/>
+<rect x="91" y="106" width="17" height="17" rx="3" fill="#ffffff"/>
+<rect x="110" y="106" width="17" height="17" rx="3" fill="#d8d6fd"/>
+<rect x="129" y="106" width="17" height="17" rx="3" fill="#ebe6db" opacity=".55"/>
+<rect x="148" y="106" width="17" height="17" rx="3" fill="#ebe6db" opacity=".55"/>
+<rect x="167" y="106" width="17" height="17" rx="3" fill="#ebe6db" opacity=".55"/>
+<rect x="186" y="106" width="17" height="17" rx="3" fill="#ebe6db" opacity=".55"/>
+<rect x="205" y="106" width="17" height="17" rx="3" fill="#ebe6db" opacity=".55"/>
+<rect x="224" y="106" width="17" height="17" rx="3" fill="#ebe6db" opacity=".55"/>
+<rect x="243" y="106" width="17" height="17" rx="3" fill="#ebe6db" opacity=".55"/>
+<rect x="262" y="106" width="17" height="17" rx="3" fill="#ebe6db" opacity=".55"/>
+<rect x="281" y="106" width="17" height="17" rx="3" fill="#ebe6db" opacity=".55"/>
+<rect x="300" y="106" width="17" height="17" rx="3" fill="#ebe6db" opacity=".55"/>
+<rect x="319" y="106" width="17" height="17" rx="3" fill="#ebe6db" opacity=".55"/>
+<rect x="338" y="106" width="17" height="17" rx="3" fill="#ebe6db" opacity=".55"/>
+<rect x="357" y="106" width="17" height="17" rx="3" fill="#ebe6db" opacity=".55"/>
+<rect x="376" y="106" width="17" height="17" rx="3" fill="#ebe6db" opacity=".55"/>
+<rect x="395" y="106" width="17" height="17" rx="3" fill="#ebe6db" opacity=".55"/>
+<rect x="414" y="106" width="17" height="17" rx="3" fill="#ebe6db" opacity=".55"/>
+<rect x="433" y="106" width="17" height="17" rx="3" fill="#ebe6db" opacity=".55"/>
+<rect x="452" y="106" width="17" height="17" rx="3" fill="#ebe6db" opacity=".55"/>
+<rect x="34" y="125" width="17" height="17" rx="3" fill="#2f48e6"/>
+<rect x="53" y="125" width="17" height="17" rx="3" fill="#dcd9fe"/>
+<rect x="72" y="125" width="17" height="17" rx="3" fill="#dfdbfe"/>
+<rect x="91" y="125" width="17" height="17" rx="3" fill="#ffffff"/>
+<rect x="110" y="125" width="17" height="17" rx="3" fill="#ffffff"/>
+<rect x="129" y="125" width="17" height="17" rx="3" fill="#d8d6fd"/>
+<rect x="148" y="125" width="17" height="17" rx="3" fill="#ebe6db" opacity=".55"/>
+<rect x="167" y="125" width="17" height="17" rx="3" fill="#ebe6db" opacity=".55"/>
+<rect x="186" y="125" width="17" height="17" rx="3" fill="#ebe6db" opacity=".55"/>
+<rect x="205" y="125" width="17" height="17" rx="3" fill="#ebe6db" opacity=".55"/>
+<rect x="224" y="125" width="17" height="17" rx="3" fill="#ebe6db" opacity=".55"/>
+<rect x="243" y="125" width="17" height="17" rx="3" fill="#ebe6db" opacity=".55"/>
+<rect x="262" y="125" width="17" height="17" rx="3" fill="#ebe6db" opacity=".55"/>
+<rect x="281" y="125" width="17" height="17" rx="3" fill="#ebe6db" opacity=".55"/>
+<rect x="300" y="125" width="17" height="17" rx="3" fill="#ebe6db" opacity=".55"/>
+<rect x="319" y="125" width="17" height="17" rx="3" fill="#ebe6db" opacity=".55"/>
+<rect x="338" y="125" width="17" height="17" rx="3" fill="#ebe6db" opacity=".55"/>
+<rect x="357" y="125" width="17" height="17" rx="3" fill="#ebe6db" opacity=".55"/>
+<rect x="376" y="125" width="17" height="17" rx="3" fill="#ebe6db" opacity=".55"/>
+<rect x="395" y="125" width="17" height="17" rx="3" fill="#ebe6db" opacity=".55"/>
+<rect x="414" y="125" width="17" height="17" rx="3" fill="#ebe6db" opacity=".55"/>
+<rect x="433" y="125" width="17" height="17" rx="3" fill="#ebe6db" opacity=".55"/>
+<rect x="452" y="125" width="17" height="17" rx="3" fill="#ebe6db" opacity=".55"/>
+<rect x="34" y="144" width="17" height="17" rx="3" fill="#334ce7"/>
+<rect x="53" y="144" width="17" height="17" rx="3" fill="#dbd9fe"/>
+<rect x="72" y="144" width="17" height="17" rx="3" fill="#d7d5fd"/>
+<rect x="91" y="144" width="17" height="17" rx="3" fill="#d5d4fd"/>
+<rect x="110" y="144" width="17" height="17" rx="3" fill="#d2d1fd"/>
+<rect x="129" y="144" width="17" height="17" rx="3" fill="#d4d2fd"/>
+<rect x="148" y="144" width="17" height="17" rx="3" fill="#dbd8fe"/>
+<rect x="167" y="144" width="17" height="17" rx="3" fill="#ebe6db" opacity=".55"/>
+<rect x="186" y="144" width="17" height="17" rx="3" fill="#ebe6db" opacity=".55"/>
+<rect x="205" y="144" width="17" height="17" rx="3" fill="#ebe6db" opacity=".55"/>
+<rect x="224" y="144" width="17" height="17" rx="3" fill="#ebe6db" opacity=".55"/>
+<rect x="243" y="144" width="17" height="17" rx="3" fill="#ebe6db" opacity=".55"/>
+<rect x="262" y="144" width="17" height="17" rx="3" fill="#ebe6db" opacity=".55"/>
+<rect x="281" y="144" width="17" height="17" rx="3" fill="#ebe6db" opacity=".55"/>
+<rect x="300" y="144" width="17" height="17" rx="3" fill="#ebe6db" opacity=".55"/>
+<rect x="319" y="144" width="17" height="17" rx="3" fill="#ebe6db" opacity=".55"/>
+<rect x="338" y="144" width="17" height="17" rx="3" fill="#ebe6db" opacity=".55"/>
+<rect x="357" y="144" width="17" height="17" rx="3" fill="#ebe6db" opacity=".55"/>
+<rect x="376" y="144" width="17" height="17" rx="3" fill="#ebe6db" opacity=".55"/>
+<rect x="395" y="144" width="17" height="17" rx="3" fill="#ebe6db" opacity=".55"/>
+<rect x="414" y="144" width="17" height="17" rx="3" fill="#ebe6db" opacity=".55"/>
+<rect x="433" y="144" width="17" height="17" rx="3" fill="#ebe6db" opacity=".55"/>
+<rect x="452" y="144" width="17" height="17" rx="3" fill="#ebe6db" opacity=".55"/>
+<rect x="34" y="163" width="17" height="17" rx="3" fill="#2f48e6"/>
+<rect x="53" y="163" width="17" height="17" rx="3" fill="#e0dcfe"/>
+<rect x="72" y="163" width="17" height="17" rx="3" fill="#dedbfe"/>
+<rect x="91" y="163" width="17" height="17" rx="3" fill="#dbd8fe"/>
+<rect x="110" y="163" width="17" height="17" rx="3" fill="#ffffff"/>
+<rect x="129" y="163" width="17" height="17" rx="3" fill="#ffffff"/>
+<rect x="148" y="163" width="17" height="17" rx="3" fill="#ffffff"/>
+<rect x="167" y="163" width="17" height="17" rx="3" fill="#ffffff"/>
+<rect x="186" y="163" width="17" height="17" rx="3" fill="#ebe6db" opacity=".55"/>
+<rect x="205" y="163" width="17" height="17" rx="3" fill="#ebe6db" opacity=".55"/>
+<rect x="224" y="163" width="17" height="17" rx="3" fill="#ebe6db" opacity=".55"/>
+<rect x="243" y="163" width="17" height="17" rx="3" fill="#ebe6db" opacity=".55"/>
+<rect x="262" y="163" width="17" height="17" rx="3" fill="#ebe6db" opacity=".55"/>
+<rect x="281" y="163" width="17" height="17" rx="3" fill="#ebe6db" opacity=".55"/>
+<rect x="300" y="163" width="17" height="17" rx="3" fill="#ebe6db" opacity=".55"/>
+<rect x="319" y="163" width="17" height="17" rx="3" fill="#ebe6db" opacity=".55"/>
+<rect x="338" y="163" width="17" height="17" rx="3" fill="#ebe6db" opacity=".55"/>
+<rect x="357" y="163" width="17" height="17" rx="3" fill="#ebe6db" opacity=".55"/>
+<rect x="376" y="163" width="17" height="17" rx="3" fill="#ebe6db" opacity=".55"/>
+<rect x="395" y="163" width="17" height="17" rx="3" fill="#ebe6db" opacity=".55"/>
+<rect x="414" y="163" width="17" height="17" rx="3" fill="#ebe6db" opacity=".55"/>
+<rect x="433" y="163" width="17" height="17" rx="3" fill="#ebe6db" opacity=".55"/>
+<rect x="452" y="163" width="17" height="17" rx="3" fill="#ebe6db" opacity=".55"/>
+<rect x="34" y="182" width="17" height="17" rx="3" fill="#3c53e8"/>
+<rect x="53" y="182" width="17" height="17" rx="3" fill="#c9c9fb"/>
+<rect x="72" y="182" width="17" height="17" rx="3" fill="#d4d3fd"/>
+<rect x="91" y="182" width="17" height="17" rx="3" fill="#d1d0fc"/>
+<rect x="110" y="182" width="17" height="17" rx="3" fill="#dcd9fe"/>
+<rect x="129" y="182" width="17" height="17" rx="3" fill="#dfdcfe"/>
+<rect x="148" y="182" width="17" height="17" rx="3" fill="#c3c4fa"/>
+<rect x="167" y="182" width="17" height="17" rx="3" fill="#ffffff"/>
+<rect x="186" y="182" width="17" height="17" rx="3" fill="#ccccfc"/>
+<rect x="205" y="182" width="17" height="17" rx="3" fill="#ebe6db" opacity=".55"/>
+<rect x="224" y="182" width="17" height="17" rx="3" fill="#ebe6db" opacity=".55"/>
+<rect x="243" y="182" width="17" height="17" rx="3" fill="#ebe6db" opacity=".55"/>
+<rect x="262" y="182" width="17" height="17" rx="3" fill="#ebe6db" opacity=".55"/>
+<rect x="281" y="182" width="17" height="17" rx="3" fill="#ebe6db" opacity=".55"/>
+<rect x="300" y="182" width="17" height="17" rx="3" fill="#ebe6db" opacity=".55"/>
+<rect x="319" y="182" width="17" height="17" rx="3" fill="#ebe6db" opacity=".55"/>
+<rect x="338" y="182" width="17" height="17" rx="3" fill="#ebe6db" opacity=".55"/>
+<rect x="357" y="182" width="17" height="17" rx="3" fill="#ebe6db" opacity=".55"/>
+<rect x="376" y="182" width="17" height="17" rx="3" fill="#ebe6db" opacity=".55"/>
+<rect x="395" y="182" width="17" height="17" rx="3" fill="#ebe6db" opacity=".55"/>
+<rect x="414" y="182" width="17" height="17" rx="3" fill="#ebe6db" opacity=".55"/>
+<rect x="433" y="182" width="17" height="17" rx="3" fill="#ebe6db" opacity=".55"/>
+<rect x="452" y="182" width="17" height="17" rx="3" fill="#ebe6db" opacity=".55"/>
+<rect x="34" y="201" width="17" height="17" rx="3" fill="#3d54e8"/>
+<rect x="53" y="201" width="17" height="17" rx="3" fill="#d0cffc"/>
+<rect x="72" y="201" width="17" height="17" rx="3" fill="#d1d0fc"/>
+<rect x="91" y="201" width="17" height="17" rx="3" fill="#cfcefc"/>
+<rect x="110" y="201" width="17" height="17" rx="3" fill="#c4c5fb"/>
+<rect x="129" y="201" width="17" height="17" rx="3" fill="#dcd9fe"/>
+<rect x="148" y="201" width="17" height="17" rx="3" fill="#d5d4fd"/>
+<rect x="167" y="201" width="17" height="17" rx="3" fill="#d1d0fc"/>
+<rect x="186" y="201" width="17" height="17" rx="3" fill="#d3d2fd"/>
+<rect x="205" y="201" width="17" height="17" rx="3" fill="#dbd9fe"/>
+<rect x="224" y="201" width="17" height="17" rx="3" fill="#ebe6db" opacity=".55"/>
+<rect x="243" y="201" width="17" height="17" rx="3" fill="#ebe6db" opacity=".55"/>
+<rect x="262" y="201" width="17" height="17" rx="3" fill="#ebe6db" opacity=".55"/>
+<rect x="281" y="201" width="17" height="17" rx="3" fill="#ebe6db" opacity=".55"/>
+<rect x="300" y="201" width="17" height="17" rx="3" fill="#ebe6db" opacity=".55"/>
+<rect x="319" y="201" width="17" height="17" rx="3" fill="#ebe6db" opacity=".55"/>
+<rect x="338" y="201" width="17" height="17" rx="3" fill="#ebe6db" opacity=".55"/>
+<rect x="357" y="201" width="17" height="17" rx="3" fill="#ebe6db" opacity=".55"/>
+<rect x="376" y="201" width="17" height="17" rx="3" fill="#ebe6db" opacity=".55"/>
+<rect x="395" y="201" width="17" height="17" rx="3" fill="#ebe6db" opacity=".55"/>
+<rect x="414" y="201" width="17" height="17" rx="3" fill="#ebe6db" opacity=".55"/>
+<rect x="433" y="201" width="17" height="17" rx="3" fill="#ebe6db" opacity=".55"/>
+<rect x="452" y="201" width="17" height="17" rx="3" fill="#ebe6db" opacity=".55"/>
+<rect x="34" y="220" width="17" height="17" rx="3" fill="#314ae6"/>
+<rect x="53" y="220" width="17" height="17" rx="3" fill="#dedbfe"/>
+<rect x="72" y="220" width="17" height="17" rx="3" fill="#dddafe"/>
+<rect x="91" y="220" width="17" height="17" rx="3" fill="#dbd8fe"/>
+<rect x="110" y="220" width="17" height="17" rx="3" fill="#dedbfe"/>
+<rect x="129" y="220" width="17" height="17" rx="3" fill="#d9d7fd"/>
+<rect x="148" y="220" width="17" height="17" rx="3" fill="#dfdcfe"/>
+<rect x="167" y="220" width="17" height="17" rx="3" fill="#ffffff"/>
+<rect x="186" y="220" width="17" height="17" rx="3" fill="#dddafe"/>
+<rect x="205" y="220" width="17" height="17" rx="3" fill="#dedbfe"/>
+<rect x="224" y="220" width="17" height="17" rx="3" fill="#d6d4fd"/>
+<rect x="243" y="220" width="17" height="17" rx="3" fill="#ebe6db" opacity=".55"/>
+<rect x="262" y="220" width="17" height="17" rx="3" fill="#ebe6db" opacity=".55"/>
+<rect x="281" y="220" width="17" height="17" rx="3" fill="#ebe6db" opacity=".55"/>
+<rect x="300" y="220" width="17" height="17" rx="3" fill="#ebe6db" opacity=".55"/>
+<rect x="319" y="220" width="17" height="17" rx="3" fill="#ebe6db" opacity=".55"/>
+<rect x="338" y="220" width="17" height="17" rx="3" fill="#ebe6db" opacity=".55"/>
+<rect x="357" y="220" width="17" height="17" rx="3" fill="#ebe6db" opacity=".55"/>
+<rect x="376" y="220" width="17" height="17" rx="3" fill="#ebe6db" opacity=".55"/>
+<rect x="395" y="220" width="17" height="17" rx="3" fill="#ebe6db" opacity=".55"/>
+<rect x="414" y="220" width="17" height="17" rx="3" fill="#ebe6db" opacity=".55"/>
+<rect x="433" y="220" width="17" height="17" rx="3" fill="#ebe6db" opacity=".55"/>
+<rect x="452" y="220" width="17" height="17" rx="3" fill="#ebe6db" opacity=".55"/>
+<rect x="34" y="239" width="17" height="17" rx="3" fill="#4258e9"/>
+<rect x="53" y="239" width="17" height="17" rx="3" fill="#e0ddfe"/>
+<rect x="72" y="239" width="17" height="17" rx="3" fill="#d0d0fc"/>
+<rect x="91" y="239" width="17" height="17" rx="3" fill="#ffffff"/>
+<rect x="110" y="239" width="17" height="17" rx="3" fill="#bcbffa"/>
+<rect x="129" y="239" width="17" height="17" rx="3" fill="#bec0fa"/>
+<rect x="148" y="239" width="17" height="17" rx="3" fill="#dbd9fe"/>
+<rect x="167" y="239" width="17" height="17" rx="3" fill="#ffffff"/>
+<rect x="186" y="239" width="17" height="17" rx="3" fill="#cfcefc"/>
+<rect x="205" y="239" width="17" height="17" rx="3" fill="#dcd9fe"/>
+<rect x="224" y="239" width="17" height="17" rx="3" fill="#d6d4fd"/>
+<rect x="243" y="239" width="17" height="17" rx="3" fill="#d4d3fd"/>
+<rect x="262" y="239" width="17" height="17" rx="3" fill="#ebe6db" opacity=".55"/>
+<rect x="281" y="239" width="17" height="17" rx="3" fill="#ebe6db" opacity=".55"/>
+<rect x="300" y="239" width="17" height="17" rx="3" fill="#ebe6db" opacity=".55"/>
+<rect x="319" y="239" width="17" height="17" rx="3" fill="#ebe6db" opacity=".55"/>
+<rect x="338" y="239" width="17" height="17" rx="3" fill="#ebe6db" opacity=".55"/>
+<rect x="357" y="239" width="17" height="17" rx="3" fill="#ebe6db" opacity=".55"/>
+<rect x="376" y="239" width="17" height="17" rx="3" fill="#ebe6db" opacity=".55"/>
+<rect x="395" y="239" width="17" height="17" rx="3" fill="#ebe6db" opacity=".55"/>
+<rect x="414" y="239" width="17" height="17" rx="3" fill="#ebe6db" opacity=".55"/>
+<rect x="433" y="239" width="17" height="17" rx="3" fill="#ebe6db" opacity=".55"/>
+<rect x="452" y="239" width="17" height="17" rx="3" fill="#ebe6db" opacity=".55"/>
+<rect x="34" y="258" width="17" height="17" rx="3" fill="#bdbffa"/>
+<rect x="53" y="258" width="17" height="17" rx="3" fill="#ffffff"/>
+<rect x="72" y="258" width="17" height="17" rx="3" fill="#3950e8"/>
+<rect x="91" y="258" width="17" height="17" rx="3" fill="#ffffff"/>
+<rect x="110" y="258" width="17" height="17" rx="3" fill="#dfdcfe"/>
+<rect x="129" y="258" width="17" height="17" rx="3" fill="#d0cffc"/>
+<rect x="148" y="258" width="17" height="17" rx="3" fill="#ffffff"/>
+<rect x="167" y="258" width="17" height="17" rx="3" fill="#ffffff"/>
+<rect x="186" y="258" width="17" height="17" rx="3" fill="#dddafe"/>
+<rect x="205" y="258" width="17" height="17" rx="3" fill="#e0ddfe"/>
+<rect x="224" y="258" width="17" height="17" rx="3" fill="#d8d6fd"/>
+<rect x="243" y="258" width="17" height="17" rx="3" fill="#dad8fe"/>
+<rect x="262" y="258" width="17" height="17" rx="3" fill="#d4d3fd"/>
+<rect x="281" y="258" width="17" height="17" rx="3" fill="#ebe6db" opacity=".55"/>
+<rect x="300" y="258" width="17" height="17" rx="3" fill="#ebe6db" opacity=".55"/>
+<rect x="319" y="258" width="17" height="17" rx="3" fill="#ebe6db" opacity=".55"/>
+<rect x="338" y="258" width="17" height="17" rx="3" fill="#ebe6db" opacity=".55"/>
+<rect x="357" y="258" width="17" height="17" rx="3" fill="#ebe6db" opacity=".55"/>
+<rect x="376" y="258" width="17" height="17" rx="3" fill="#ebe6db" opacity=".55"/>
+<rect x="395" y="258" width="17" height="17" rx="3" fill="#ebe6db" opacity=".55"/>
+<rect x="414" y="258" width="17" height="17" rx="3" fill="#ebe6db" opacity=".55"/>
+<rect x="433" y="258" width="17" height="17" rx="3" fill="#ebe6db" opacity=".55"/>
+<rect x="452" y="258" width="17" height="17" rx="3" fill="#ebe6db" opacity=".55"/>
+<rect x="34" y="277" width="17" height="17" rx="3" fill="#b7bbf9"/>
+<rect x="53" y="277" width="17" height="17" rx="3" fill="#d0cffc"/>
+<rect x="72" y="277" width="17" height="17" rx="3" fill="#ffffff"/>
+<rect x="91" y="277" width="17" height="17" rx="3" fill="#3a51e8"/>
+<rect x="110" y="277" width="17" height="17" rx="3" fill="#ffffff"/>
+<rect x="129" y="277" width="17" height="17" rx="3" fill="#ffffff"/>
+<rect x="148" y="277" width="17" height="17" rx="3" fill="#ffffff"/>
+<rect x="167" y="277" width="17" height="17" rx="3" fill="#ffffff"/>
+<rect x="186" y="277" width="17" height="17" rx="3" fill="#dfdcfe"/>
+<rect x="205" y="277" width="17" height="17" rx="3" fill="#dfdcfe"/>
+<rect x="224" y="277" width="17" height="17" rx="3" fill="#d0d0fc"/>
+<rect x="243" y="277" width="17" height="17" rx="3" fill="#ffffff"/>
+<rect x="262" y="277" width="17" height="17" rx="3" fill="#ffffff"/>
+<rect x="281" y="277" width="17" height="17" rx="3" fill="#ffffff"/>
+<rect x="300" y="277" width="17" height="17" rx="3" fill="#ebe6db" opacity=".55"/>
+<rect x="319" y="277" width="17" height="17" rx="3" fill="#ebe6db" opacity=".55"/>
+<rect x="338" y="277" width="17" height="17" rx="3" fill="#ebe6db" opacity=".55"/>
+<rect x="357" y="277" width="17" height="17" rx="3" fill="#ebe6db" opacity=".55"/>
+<rect x="376" y="277" width="17" height="17" rx="3" fill="#ebe6db" opacity=".55"/>
+<rect x="395" y="277" width="17" height="17" rx="3" fill="#ebe6db" opacity=".55"/>
+<rect x="414" y="277" width="17" height="17" rx="3" fill="#ebe6db" opacity=".55"/>
+<rect x="433" y="277" width="17" height="17" rx="3" fill="#ebe6db" opacity=".55"/>
+<rect x="452" y="277" width="17" height="17" rx="3" fill="#ebe6db" opacity=".55"/>
+<rect x="34" y="296" width="17" height="17" rx="3" fill="#dedbfe"/>
+<rect x="53" y="296" width="17" height="17" rx="3" fill="#ffffff"/>
+<rect x="72" y="296" width="17" height="17" rx="3" fill="#ffffff"/>
+<rect x="91" y="296" width="17" height="17" rx="3" fill="#ffffff"/>
+<rect x="110" y="296" width="17" height="17" rx="3" fill="#2f48e6"/>
+<rect x="129" y="296" width="17" height="17" rx="3" fill="#dad7fe"/>
+<rect x="148" y="296" width="17" height="17" rx="3" fill="#ffffff"/>
+<rect x="167" y="296" width="17" height="17" rx="3" fill="#ffffff"/>
+<rect x="186" y="296" width="17" height="17" rx="3" fill="#ffffff"/>
+<rect x="205" y="296" width="17" height="17" rx="3" fill="#ffffff"/>
+<rect x="224" y="296" width="17" height="17" rx="3" fill="#ffffff"/>
+<rect x="243" y="296" width="17" height="17" rx="3" fill="#ffffff"/>
+<rect x="262" y="296" width="17" height="17" rx="3" fill="#ffffff"/>
+<rect x="281" y="296" width="17" height="17" rx="3" fill="#ffffff"/>
+<rect x="300" y="296" width="17" height="17" rx="3" fill="#ffffff"/>
+<rect x="319" y="296" width="17" height="17" rx="3" fill="#ebe6db" opacity=".55"/>
+<rect x="338" y="296" width="17" height="17" rx="3" fill="#ebe6db" opacity=".55"/>
+<rect x="357" y="296" width="17" height="17" rx="3" fill="#ebe6db" opacity=".55"/>
+<rect x="376" y="296" width="17" height="17" rx="3" fill="#ebe6db" opacity=".55"/>
+<rect x="395" y="296" width="17" height="17" rx="3" fill="#ebe6db" opacity=".55"/>
+<rect x="414" y="296" width="17" height="17" rx="3" fill="#ebe6db" opacity=".55"/>
+<rect x="433" y="296" width="17" height="17" rx="3" fill="#ebe6db" opacity=".55"/>
+<rect x="452" y="296" width="17" height="17" rx="3" fill="#ebe6db" opacity=".55"/>
+<rect x="34" y="315" width="17" height="17" rx="3" fill="#c6c7fb"/>
+<rect x="53" y="315" width="17" height="17" rx="3" fill="#ffffff"/>
+<rect x="72" y="315" width="17" height="17" rx="3" fill="#ffffff"/>
+<rect x="91" y="315" width="17" height="17" rx="3" fill="#ffffff"/>
+<rect x="110" y="315" width="17" height="17" rx="3" fill="#dfdcfe"/>
+<rect x="129" y="315" width="17" height="17" rx="3" fill="#334be7"/>
+<rect x="148" y="315" width="17" height="17" rx="3" fill="#d9d7fe"/>
+<rect x="167" y="315" width="17" height="17" rx="3" fill="#ffffff"/>
+<rect x="186" y="315" width="17" height="17" rx="3" fill="#ffffff"/>
+<rect x="205" y="315" width="17" height="17" rx="3" fill="#ffffff"/>
+<rect x="224" y="315" width="17" height="17" rx="3" fill="#ffffff"/>
+<rect x="243" y="315" width="17" height="17" rx="3" fill="#dfdcfe"/>
+<rect x="262" y="315" width="17" height="17" rx="3" fill="#ffffff"/>
+<rect x="281" y="315" width="17" height="17" rx="3" fill="#ffffff"/>
+<rect x="300" y="315" width="17" height="17" rx="3" fill="#ffffff"/>
+<rect x="319" y="315" width="17" height="17" rx="3" fill="#dfdcfe"/>
+<rect x="338" y="315" width="17" height="17" rx="3" fill="#ebe6db" opacity=".55"/>
+<rect x="357" y="315" width="17" height="17" rx="3" fill="#ebe6db" opacity=".55"/>
+<rect x="376" y="315" width="17" height="17" rx="3" fill="#ebe6db" opacity=".55"/>
+<rect x="395" y="315" width="17" height="17" rx="3" fill="#ebe6db" opacity=".55"/>
+<rect x="414" y="315" width="17" height="17" rx="3" fill="#ebe6db" opacity=".55"/>
+<rect x="433" y="315" width="17" height="17" rx="3" fill="#ebe6db" opacity=".55"/>
+<rect x="452" y="315" width="17" height="17" rx="3" fill="#ebe6db" opacity=".55"/>
+<rect x="34" y="334" width="17" height="17" rx="3" fill="#bfc1fa"/>
+<rect x="53" y="334" width="17" height="17" rx="3" fill="#dfdcfe"/>
+<rect x="72" y="334" width="17" height="17" rx="3" fill="#ffffff"/>
+<rect x="91" y="334" width="17" height="17" rx="3" fill="#ffffff"/>
+<rect x="110" y="334" width="17" height="17" rx="3" fill="#ffffff"/>
+<rect x="129" y="334" width="17" height="17" rx="3" fill="#d7d5fd"/>
+<rect x="148" y="334" width="17" height="17" rx="3" fill="#354de7"/>
+<rect x="167" y="334" width="17" height="17" rx="3" fill="#ffffff"/>
+<rect x="186" y="334" width="17" height="17" rx="3" fill="#ffffff"/>
+<rect x="205" y="334" width="17" height="17" rx="3" fill="#dfdcfe"/>
+<rect x="224" y="334" width="17" height="17" rx="3" fill="#dbd9fe"/>
+<rect x="243" y="334" width="17" height="17" rx="3" fill="#ffffff"/>
+<rect x="262" y="334" width="17" height="17" rx="3" fill="#ffffff"/>
+<rect x="281" y="334" width="17" height="17" rx="3" fill="#ffffff"/>
+<rect x="300" y="334" width="17" height="17" rx="3" fill="#ffffff"/>
+<rect x="319" y="334" width="17" height="17" rx="3" fill="#ffffff"/>
+<rect x="338" y="334" width="17" height="17" rx="3" fill="#dfdbfe"/>
+<rect x="357" y="334" width="17" height="17" rx="3" fill="#ebe6db" opacity=".55"/>
+<rect x="376" y="334" width="17" height="17" rx="3" fill="#ebe6db" opacity=".55"/>
+<rect x="395" y="334" width="17" height="17" rx="3" fill="#ebe6db" opacity=".55"/>
+<rect x="414" y="334" width="17" height="17" rx="3" fill="#ebe6db" opacity=".55"/>
+<rect x="433" y="334" width="17" height="17" rx="3" fill="#ebe6db" opacity=".55"/>
+<rect x="452" y="334" width="17" height="17" rx="3" fill="#ebe6db" opacity=".55"/>
+<rect x="34" y="353" width="17" height="17" rx="3" fill="#adb2f8"/>
+<rect x="53" y="353" width="17" height="17" rx="3" fill="#d7d5fd"/>
+<rect x="72" y="353" width="17" height="17" rx="3" fill="#dedbfe"/>
+<rect x="91" y="353" width="17" height="17" rx="3" fill="#dad8fe"/>
+<rect x="110" y="353" width="17" height="17" rx="3" fill="#e0ddfe"/>
+<rect x="129" y="353" width="17" height="17" rx="3" fill="#d2d1fd"/>
+<rect x="148" y="353" width="17" height="17" rx="3" fill="#dddafe"/>
+<rect x="167" y="353" width="17" height="17" rx="3" fill="#4056e8"/>
+<rect x="186" y="353" width="17" height="17" rx="3" fill="#d7d5fd"/>
+<rect x="205" y="353" width="17" height="17" rx="3" fill="#ffffff"/>
+<rect x="224" y="353" width="17" height="17" rx="3" fill="#d5d4fd"/>
+<rect x="243" y="353" width="17" height="17" rx="3" fill="#e0dcfe"/>
+<rect x="262" y="353" width="17" height="17" rx="3" fill="#ffffff"/>
+<rect x="281" y="353" width="17" height="17" rx="3" fill="#ffffff"/>
+<rect x="300" y="353" width="17" height="17" rx="3" fill="#dddafe"/>
+<rect x="319" y="353" width="17" height="17" rx="3" fill="#ffffff"/>
+<rect x="338" y="353" width="17" height="17" rx="3" fill="#dedbfe"/>
+<rect x="357" y="353" width="17" height="17" rx="3" fill="#ffffff"/>
+<rect x="376" y="353" width="17" height="17" rx="3" fill="#ebe6db" opacity=".55"/>
+<rect x="395" y="353" width="17" height="17" rx="3" fill="#ebe6db" opacity=".55"/>
+<rect x="414" y="353" width="17" height="17" rx="3" fill="#ebe6db" opacity=".55"/>
+<rect x="433" y="353" width="17" height="17" rx="3" fill="#ebe6db" opacity=".55"/>
+<rect x="452" y="353" width="17" height="17" rx="3" fill="#ebe6db" opacity=".55"/>
+<rect x="34" y="372" width="17" height="17" rx="3" fill="#c0c1fa"/>
+<rect x="53" y="372" width="17" height="17" rx="3" fill="#dfdcfe"/>
+<rect x="72" y="372" width="17" height="17" rx="3" fill="#ffffff"/>
+<rect x="91" y="372" width="17" height="17" rx="3" fill="#dfdcfe"/>
+<rect x="110" y="372" width="17" height="17" rx="3" fill="#ffffff"/>
+<rect x="129" y="372" width="17" height="17" rx="3" fill="#ffffff"/>
+<rect x="148" y="372" width="17" height="17" rx="3" fill="#ffffff"/>
+<rect x="167" y="372" width="17" height="17" rx="3" fill="#ffffff"/>
+<rect x="186" y="372" width="17" height="17" rx="3" fill="#374fe7"/>
+<rect x="205" y="372" width="17" height="17" rx="3" fill="#d2d1fd"/>
+<rect x="224" y="372" width="17" height="17" rx="3" fill="#d6d4fd"/>
+<rect x="243" y="372" width="17" height="17" rx="3" fill="#e0dcfe"/>
+<rect x="262" y="372" width="17" height="17" rx="3" fill="#dfdbfe"/>
+<rect x="281" y="372" width="17" height="17" rx="3" fill="#ffffff"/>
+<rect x="300" y="372" width="17" height="17" rx="3" fill="#dedbfe"/>
+<rect x="319" y="372" width="17" height="17" rx="3" fill="#ffffff"/>
+<rect x="338" y="372" width="17" height="17" rx="3" fill="#ffffff"/>
+<rect x="357" y="372" width="17" height="17" rx="3" fill="#ffffff"/>
+<rect x="376" y="372" width="17" height="17" rx="3" fill="#ffffff"/>
+<rect x="395" y="372" width="17" height="17" rx="3" fill="#ebe6db" opacity=".55"/>
+<rect x="414" y="372" width="17" height="17" rx="3" fill="#ebe6db" opacity=".55"/>
+<rect x="433" y="372" width="17" height="17" rx="3" fill="#ebe6db" opacity=".55"/>
+<rect x="452" y="372" width="17" height="17" rx="3" fill="#ebe6db" opacity=".55"/>
+<rect x="34" y="391" width="17" height="17" rx="3" fill="#bfc0fa"/>
+<rect x="53" y="391" width="17" height="17" rx="3" fill="#d0d0fc"/>
+<rect x="72" y="391" width="17" height="17" rx="3" fill="#dfdbfe"/>
+<rect x="91" y="391" width="17" height="17" rx="3" fill="#dddafe"/>
+<rect x="110" y="391" width="17" height="17" rx="3" fill="#ffffff"/>
+<rect x="129" y="391" width="17" height="17" rx="3" fill="#e0dcfe"/>
+<rect x="148" y="391" width="17" height="17" rx="3" fill="#d6d4fd"/>
+<rect x="167" y="391" width="17" height="17" rx="3" fill="#ffffff"/>
+<rect x="186" y="391" width="17" height="17" rx="3" fill="#dbd8fe"/>
+<rect x="205" y="391" width="17" height="17" rx="3" fill="#7d8af1"/>
+<rect x="224" y="391" width="17" height="17" rx="3" fill="#6172ed"/>
+<rect x="243" y="391" width="17" height="17" rx="3" fill="#dedbfe"/>
+<rect x="262" y="391" width="17" height="17" rx="3" fill="#ffffff"/>
+<rect x="281" y="391" width="17" height="17" rx="3" fill="#e0dcfe"/>
+<rect x="300" y="391" width="17" height="17" rx="3" fill="#dddafe"/>
+<rect x="319" y="391" width="17" height="17" rx="3" fill="#ffffff"/>
+<rect x="338" y="391" width="17" height="17" rx="3" fill="#ffffff"/>
+<rect x="357" y="391" width="17" height="17" rx="3" fill="#ffffff"/>
+<rect x="376" y="391" width="17" height="17" rx="3" fill="#ffffff"/>
+<rect x="395" y="391" width="17" height="17" rx="3" fill="#e0ddfe"/>
+<rect x="414" y="391" width="17" height="17" rx="3" fill="#ebe6db" opacity=".55"/>
+<rect x="433" y="391" width="17" height="17" rx="3" fill="#ebe6db" opacity=".55"/>
+<rect x="452" y="391" width="17" height="17" rx="3" fill="#ebe6db" opacity=".55"/>
+<rect x="34" y="410" width="17" height="17" rx="3" fill="#cacafb"/>
+<rect x="53" y="410" width="17" height="17" rx="3" fill="#d6d5fd"/>
+<rect x="72" y="410" width="17" height="17" rx="3" fill="#ffffff"/>
+<rect x="91" y="410" width="17" height="17" rx="3" fill="#dedbfe"/>
+<rect x="110" y="410" width="17" height="17" rx="3" fill="#dedbfe"/>
+<rect x="129" y="410" width="17" height="17" rx="3" fill="#dfdcfe"/>
+<rect x="148" y="410" width="17" height="17" rx="3" fill="#e0ddfe"/>
+<rect x="167" y="410" width="17" height="17" rx="3" fill="#ffffff"/>
+<rect x="186" y="410" width="17" height="17" rx="3" fill="#e0ddfe"/>
+<rect x="205" y="410" width="17" height="17" rx="3" fill="#dfdcfe"/>
+<rect x="224" y="410" width="17" height="17" rx="3" fill="#344ce7"/>
+<rect x="243" y="410" width="17" height="17" rx="3" fill="#ffffff"/>
+<rect x="262" y="410" width="17" height="17" rx="3" fill="#ffffff"/>
+<rect x="281" y="410" width="17" height="17" rx="3" fill="#ffffff"/>
+<rect x="300" y="410" width="17" height="17" rx="3" fill="#dedbfe"/>
+<rect x="319" y="410" width="17" height="17" rx="3" fill="#ffffff"/>
+<rect x="338" y="410" width="17" height="17" rx="3" fill="#ffffff"/>
+<rect x="357" y="410" width="17" height="17" rx="3" fill="#ffffff"/>
+<rect x="376" y="410" width="17" height="17" rx="3" fill="#dedbfe"/>
+<rect x="395" y="410" width="17" height="17" rx="3" fill="#ffffff"/>
+<rect x="414" y="410" width="17" height="17" rx="3" fill="#ffffff"/>
+<rect x="433" y="410" width="17" height="17" rx="3" fill="#ebe6db" opacity=".55"/>
+<rect x="452" y="410" width="17" height="17" rx="3" fill="#ebe6db" opacity=".55"/>
+<rect x="34" y="429" width="17" height="17" rx="3" fill="#d0cffc"/>
+<rect x="53" y="429" width="17" height="17" rx="3" fill="#ffffff"/>
+<rect x="72" y="429" width="17" height="17" rx="3" fill="#ffffff"/>
+<rect x="91" y="429" width="17" height="17" rx="3" fill="#e0dcfe"/>
+<rect x="110" y="429" width="17" height="17" rx="3" fill="#ffffff"/>
+<rect x="129" y="429" width="17" height="17" rx="3" fill="#e0ddfe"/>
+<rect x="148" y="429" width="17" height="17" rx="3" fill="#ffffff"/>
+<rect x="167" y="429" width="17" height="17" rx="3" fill="#ffffff"/>
+<rect x="186" y="429" width="17" height="17" rx="3" fill="#ffffff"/>
+<rect x="205" y="429" width="17" height="17" rx="3" fill="#ffffff"/>
+<rect x="224" y="429" width="17" height="17" rx="3" fill="#d8d6fd"/>
+<rect x="243" y="429" width="17" height="17" rx="3" fill="#314ae6"/>
+<rect x="262" y="429" width="17" height="17" rx="3" fill="#ffffff"/>
+<rect x="281" y="429" width="17" height="17" rx="3" fill="#ffffff"/>
+<rect x="300" y="429" width="17" height="17" rx="3" fill="#dfdcfe"/>
+<rect x="319" y="429" width="17" height="17" rx="3" fill="#ffffff"/>
+<rect x="338" y="429" width="17" height="17" rx="3" fill="#ffffff"/>
+<rect x="357" y="429" width="17" height="17" rx="3" fill="#ffffff"/>
+<rect x="376" y="429" width="17" height="17" rx="3" fill="#ffffff"/>
+<rect x="395" y="429" width="17" height="17" rx="3" fill="#ffffff"/>
+<rect x="414" y="429" width="17" height="17" rx="3" fill="#ffffff"/>
+<rect x="433" y="429" width="17" height="17" rx="3" fill="#ffffff"/>
+<rect x="452" y="429" width="17" height="17" rx="3" fill="#ebe6db" opacity=".55"/>
+<rect x="34" y="448" width="17" height="17" rx="3" fill="#c0c1fa"/>
+<rect x="53" y="448" width="17" height="17" rx="3" fill="#ffffff"/>
+<rect x="72" y="448" width="17" height="17" rx="3" fill="#e0ddfe"/>
+<rect x="91" y="448" width="17" height="17" rx="3" fill="#ffffff"/>
+<rect x="110" y="448" width="17" height="17" rx="3" fill="#d8d6fd"/>
+<rect x="129" y="448" width="17" height="17" rx="3" fill="#d3d2fd"/>
+<rect x="148" y="448" width="17" height="17" rx="3" fill="#ffffff"/>
+<rect x="167" y="448" width="17" height="17" rx="3" fill="#ffffff"/>
+<rect x="186" y="448" width="17" height="17" rx="3" fill="#d8d6fd"/>
+<rect x="205" y="448" width="17" height="17" rx="3" fill="#dfdbfe"/>
+<rect x="224" y="448" width="17" height="17" rx="3" fill="#dbd8fe"/>
+<rect x="243" y="448" width="17" height="17" rx="3" fill="#d9d7fe"/>
+<rect x="262" y="448" width="17" height="17" rx="3" fill="#3950e8"/>
+<rect x="281" y="448" width="17" height="17" rx="3" fill="#d6d5fd"/>
+<rect x="300" y="448" width="17" height="17" rx="3" fill="#ffffff"/>
+<rect x="319" y="448" width="17" height="17" rx="3" fill="#dfdcfe"/>
+<rect x="338" y="448" width="17" height="17" rx="3" fill="#ffffff"/>
+<rect x="357" y="448" width="17" height="17" rx="3" fill="#ffffff"/>
+<rect x="376" y="448" width="17" height="17" rx="3" fill="#ffffff"/>
+<rect x="395" y="448" width="17" height="17" rx="3" fill="#ffffff"/>
+<rect x="414" y="448" width="17" height="17" rx="3" fill="#ffffff"/>
+<rect x="433" y="448" width="17" height="17" rx="3" fill="#ffffff"/>
+<rect x="452" y="448" width="17" height="17" rx="3" fill="#ffffff"/>
+<path d="M53 21 V17 H260 V21" fill="none" stroke="#626776" stroke-width="1"/>
+<text x="156.5" y="12.0" font-family="IBM Plex Mono, ui-monospace, monospace" font-size="10.5" fill="#626776" text-anchor="middle" font-weight="400" >random tokens</text>
+<path d="M25 49 H21 V256 H25" fill="none" stroke="#626776" stroke-width="1"/>
+<path d="M262 21 V17 H469 V21" fill="none" stroke="#626776" stroke-width="1"/>
+<text x="365.5" y="12.0" font-family="IBM Plex Mono, ui-monospace, monospace" font-size="10.5" fill="#626776" text-anchor="middle" font-weight="400" >the same tokens again</text>
+<path d="M25 258 H21 V465 H25" fill="none" stroke="#626776" stroke-width="1"/>
+<text x="34.0" y="489.0" font-family="IBM Plex Mono, ui-monospace, monospace" font-size="10.5" fill="#626776" text-anchor="start" font-weight="400" >keys →</text>
+<text x="14.0" y="463.0" font-family="IBM Plex Mono, ui-monospace, monospace" font-size="10.5" fill="#626776" text-anchor="start" font-weight="400" transform="rotate(-90 14 463)">queries ↓</text>
+</svg>
+      <figcaption><span class="fig">Fig. 0</span>GPT-2 layer 5, head 5, reading a random sequence twice. The bright off-diagonal is an induction head: each token in the repeat attends to whatever followed it the first time. Measured with NeuronLens.</figcaption>
+    </figure>
+  </div>
+</section>
 
-  <main>
-    <!-- Hero -->
-    <section class="hero">
-      <div class="hero-content">
-        <div class="hero-eyebrow">Dilpreet Singh Bansi</div>
-        <h1>Engineer<br><span class="accent-word">Who Ships</span></h1>
-        <div class="role-ticker" id="roleTicker">
-          <span>Building interpretable AI systems</span>
-        </div>
-        <p class="hero-subtitle">
-          Full-stack software engineer and AI builder. From-scratch implementations of production systems, distributed training, LLM inference engines, and multi-agent platforms.
-        </p>
-        <div class="hero-cta">
-          <a href="#projects" class="btn btn-primary">View Projects <span>&#8595;</span></a>
-          <a href="#contact" class="btn btn-secondary">Get in Touch</a>
+<section class="numbers" aria-label="Numbers from my projects and work">
+  <div class="wrap">
+    <div class="stat"><b>4.8e-5</b><span>largest logit gap between llama-wgsl and Hugging Face transformers on SmolLM2-135M</span></div>
+    <div class="stat"><b>6.1×</b><span>faster decoding from FlashServe's KV cache than recomputing the sequence</span></div>
+    <div class="stat"><b>227M</b><span>messages per second through LatencyArb's lock-free C++ queue</span></div>
+    <div class="stat"><b>80%</b><span>less time to build an app with natural-language generation in SOTI Snap</span></div>
+  </div>
+</section>
+
+<section class="block" id="work">
+  <div class="wrap">
+    <div class="section-head"><span class="num">01</span><h2>Featured project</h2><p>JavaScript · WebGPU · WGSL</p></div>
+    <article class="feature">
+      <div>
+        <h3>llama-wgsl</h3>
+        <p class="tagline">A language model running on your GPU, inside the browser.</p>
+        <p>llama-wgsl downloads SmolLM2 from Hugging Face, streams the weights straight into GPU memory and runs every layer with compute shaders I wrote by hand in WGSL. No server, no WebAssembly, no ML framework: about 1,500 lines of plain JavaScript.</p>
+        <ul class="points">
+          <li><b>Hand-written kernels.</b> Fused QKV and SwiGLU matrix-vector kernels, grouped-query attention, RoPE with a KV cache, and a GPU argmax for greedy decoding.</li>
+          <li><b>bf16 without shader-f16.</b> Two weights per 32-bit word, widened in registers, so every WebGPU device can run it at half the memory of f32.</li>
+          <li><b>Checked against transformers.</b> Logits agree within 4.8e-5 and a 32-token greedy reply is identical, token for token.</li>
+        </ul>
+        <div class="cta">
+          <a class="btn primary" href="https://dilpreetbansi.github.io/llama-wgsl/">Open the live demo <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 8h10M9 4l4 4-4 4"/></svg></a>
+          <a class="btn" href="https://github.com/DilpreetBansi/llama-wgsl">Read the source</a>
         </div>
       </div>
-    </section>
+      <figure class="plate shot">
+        <img src="assets/llama-wgsl.png" width="1600" height="1012" alt="The llama-wgsl chat interface: a model picker, a chat panel, live tokens-per-second stats and a list of the kernels that run for each token.">
+        <figcaption><span class="fig">Fig. 1</span>The demo picks a SmolLM2 checkpoint, caches it in the browser and chats with it, showing tokens per second, KV-cache use and the adapter it runs on.</figcaption>
+      </figure>
+    </article>
+    <figure class="plate wide-fig">
+      <div class="scroll-x"><svg viewBox="0 0 1160 136" role="img" class="chart"><title>Per-token pipeline: embedding gather, then for each of 30 layers rmsnorm, fused QKV matvec, RoPE and KV-cache write, attention, output projection with residual, rmsnorm, fused gate/up matvec with SiLU, down projection with residual; then final norm, LM head and sampling. 243 dispatches in one compute pass.</title>
+<defs><marker id="pa" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="6" markerHeight="6" orient="auto"><path d="M0 0 L8 4 L0 8 z" fill="#626776"/></marker></defs>
+<rect x="0" y="44" width="94" height="54" rx="10" fill="#ffffff" stroke="#d6cfc0"/>
+<text x="47.0" y="67.0" font-family="IBM Plex Mono, ui-monospace, monospace" font-size="12.5" fill="#16181d" text-anchor="middle" font-weight="600" >embed</text>
+<text x="47.0" y="84.0" font-family="IBM Plex Mono, ui-monospace, monospace" font-size="10" fill="#626776" text-anchor="middle" font-weight="400" >1 row</text>
+<path d="M97 71 H111" stroke="#626776" stroke-width="1.3" marker-end="url(#pa)"/>
+<rect x="118" y="44" width="94" height="54" rx="10" fill="#ffffff" stroke="#d6cfc0"/>
+<text x="165.0" y="76.0" font-family="IBM Plex Mono, ui-monospace, monospace" font-size="12.5" fill="#16181d" text-anchor="middle" font-weight="600" >rmsnorm</text>
+<rect x="217" y="44" width="94" height="54" rx="10" fill="#ffffff" stroke="#d6cfc0"/>
+<text x="264.0" y="67.0" font-family="IBM Plex Mono, ui-monospace, monospace" font-size="12.5" fill="#16181d" text-anchor="middle" font-weight="600" >QKV</text>
+<text x="264.0" y="84.0" font-family="IBM Plex Mono, ui-monospace, monospace" font-size="10" fill="#626776" text-anchor="middle" font-weight="400" >fused</text>
+<rect x="316" y="44" width="94" height="54" rx="10" fill="#ffffff" stroke="#d6cfc0"/>
+<text x="363.0" y="67.0" font-family="IBM Plex Mono, ui-monospace, monospace" font-size="12.5" fill="#16181d" text-anchor="middle" font-weight="600" >RoPE</text>
+<text x="363.0" y="84.0" font-family="IBM Plex Mono, ui-monospace, monospace" font-size="10" fill="#626776" text-anchor="middle" font-weight="400" >+ KV write</text>
+<rect x="415" y="44" width="94" height="54" rx="10" fill="#2e47e6" stroke="#2e47e6"/>
+<text x="462.0" y="67.0" font-family="IBM Plex Mono, ui-monospace, monospace" font-size="12.5" fill="#ffffff" text-anchor="middle" font-weight="600" >attention</text>
+<text x="462.0" y="84.0" font-family="IBM Plex Mono, ui-monospace, monospace" font-size="10" fill="#dfe3ff" text-anchor="middle" font-weight="400" >GQA</text>
+<rect x="514" y="44" width="94" height="54" rx="10" fill="#ffffff" stroke="#d6cfc0"/>
+<text x="561.0" y="67.0" font-family="IBM Plex Mono, ui-monospace, monospace" font-size="12.5" fill="#16181d" text-anchor="middle" font-weight="600" >O proj</text>
+<text x="561.0" y="84.0" font-family="IBM Plex Mono, ui-monospace, monospace" font-size="10" fill="#626776" text-anchor="middle" font-weight="400" >+ residual</text>
+<rect x="613" y="44" width="94" height="54" rx="10" fill="#ffffff" stroke="#d6cfc0"/>
+<text x="660.0" y="76.0" font-family="IBM Plex Mono, ui-monospace, monospace" font-size="12.5" fill="#16181d" text-anchor="middle" font-weight="600" >rmsnorm</text>
+<rect x="712" y="44" width="94" height="54" rx="10" fill="#ffffff" stroke="#d6cfc0"/>
+<text x="759.0" y="67.0" font-family="IBM Plex Mono, ui-monospace, monospace" font-size="12.5" fill="#16181d" text-anchor="middle" font-weight="600" >gate·up</text>
+<text x="759.0" y="84.0" font-family="IBM Plex Mono, ui-monospace, monospace" font-size="10" fill="#626776" text-anchor="middle" font-weight="400" >+ SiLU</text>
+<rect x="811" y="44" width="94" height="54" rx="10" fill="#ffffff" stroke="#d6cfc0"/>
+<text x="858.0" y="67.0" font-family="IBM Plex Mono, ui-monospace, monospace" font-size="12.5" fill="#16181d" text-anchor="middle" font-weight="600" >down</text>
+<text x="858.0" y="84.0" font-family="IBM Plex Mono, ui-monospace, monospace" font-size="10" fill="#626776" text-anchor="middle" font-weight="400" >+ residual</text>
+<rect x="109" y="30" width="805" height="82" rx="14" fill="none" stroke="#2e47e6" stroke-width="1.4" stroke-dasharray="5 5"/>
+<text x="118.0" y="20.0" font-family="IBM Plex Mono, ui-monospace, monospace" font-size="11.5" fill="#2e47e6" text-anchor="start" font-weight="500" >× 30 layers · 8 dispatches each</text>
+<path d="M917 71 H931" stroke="#626776" stroke-width="1.3" marker-end="url(#pa)"/>
+<rect x="938" y="44" width="94" height="54" rx="10" fill="#ffffff" stroke="#d6cfc0"/>
+<text x="985.0" y="67.0" font-family="IBM Plex Mono, ui-monospace, monospace" font-size="12.5" fill="#16181d" text-anchor="middle" font-weight="600" >LM head</text>
+<text x="985.0" y="84.0" font-family="IBM Plex Mono, ui-monospace, monospace" font-size="10" fill="#626776" text-anchor="middle" font-weight="400" >tied embed</text>
+<path d="M1035 71 H1049" stroke="#626776" stroke-width="1.3" marker-end="url(#pa)"/>
+<rect x="1056" y="44" width="94" height="54" rx="10" fill="#ffffff" stroke="#d6cfc0"/>
+<text x="1103.0" y="67.0" font-family="IBM Plex Mono, ui-monospace, monospace" font-size="12.5" fill="#16181d" text-anchor="middle" font-weight="600" >sample</text>
+<text x="1103.0" y="84.0" font-family="IBM Plex Mono, ui-monospace, monospace" font-size="10" fill="#626776" text-anchor="middle" font-weight="400" >argmax / top-p</text>
+<text x="1150.0" y="132.0" font-family="IBM Plex Mono, ui-monospace, monospace" font-size="11" fill="#626776" text-anchor="end" font-weight="400" >one compute pass per token: 243 dispatches for SmolLM2-135M</text>
+</svg></div>
+      <figcaption><span class="fig">Fig. 2</span>What one token costs. Every dispatch for a token goes into a single compute pass; prompt tokens are queued back to back with no round trip to the CPU.</figcaption>
+    </figure>
+    <div class="pair">
+      <figure class="plate">
+        <svg viewBox="0 0 560 150" role="img" class="chart"><title>Two bf16 weights packed in one 32-bit word. The high half becomes an f32 by masking off the low 16 bits; the low half by shifting it up 16 bits.</title>
+<rect x="16.0" y="34" width="15.5" height="28" rx="3" fill="#16181d"/>
+<rect x="32.5" y="34" width="15.5" height="28" rx="3" fill="#2e47e6"/>
+<rect x="49.0" y="34" width="15.5" height="28" rx="3" fill="#2e47e6"/>
+<rect x="65.5" y="34" width="15.5" height="28" rx="3" fill="#2e47e6"/>
+<rect x="82.0" y="34" width="15.5" height="28" rx="3" fill="#2e47e6"/>
+<rect x="98.5" y="34" width="15.5" height="28" rx="3" fill="#2e47e6"/>
+<rect x="115.0" y="34" width="15.5" height="28" rx="3" fill="#2e47e6"/>
+<rect x="131.5" y="34" width="15.5" height="28" rx="3" fill="#2e47e6"/>
+<rect x="148.0" y="34" width="15.5" height="28" rx="3" fill="#2e47e6"/>
+<rect x="164.5" y="34" width="15.5" height="28" rx="3" fill="#c9cff9"/>
+<rect x="181.0" y="34" width="15.5" height="28" rx="3" fill="#c9cff9"/>
+<rect x="197.5" y="34" width="15.5" height="28" rx="3" fill="#c9cff9"/>
+<rect x="214.0" y="34" width="15.5" height="28" rx="3" fill="#c9cff9"/>
+<rect x="230.5" y="34" width="15.5" height="28" rx="3" fill="#c9cff9"/>
+<rect x="247.0" y="34" width="15.5" height="28" rx="3" fill="#c9cff9"/>
+<rect x="263.5" y="34" width="15.5" height="28" rx="3" fill="#c9cff9"/>
+<rect x="280.0" y="34" width="15.5" height="28" rx="3" fill="#16181d"/>
+<rect x="296.5" y="34" width="15.5" height="28" rx="3" fill="#7d8cf0"/>
+<rect x="313.0" y="34" width="15.5" height="28" rx="3" fill="#7d8cf0"/>
+<rect x="329.5" y="34" width="15.5" height="28" rx="3" fill="#7d8cf0"/>
+<rect x="346.0" y="34" width="15.5" height="28" rx="3" fill="#7d8cf0"/>
+<rect x="362.5" y="34" width="15.5" height="28" rx="3" fill="#7d8cf0"/>
+<rect x="379.0" y="34" width="15.5" height="28" rx="3" fill="#7d8cf0"/>
+<rect x="395.5" y="34" width="15.5" height="28" rx="3" fill="#7d8cf0"/>
+<rect x="412.0" y="34" width="15.5" height="28" rx="3" fill="#7d8cf0"/>
+<rect x="428.5" y="34" width="15.5" height="28" rx="3" fill="#e2e6fc"/>
+<rect x="445.0" y="34" width="15.5" height="28" rx="3" fill="#e2e6fc"/>
+<rect x="461.5" y="34" width="15.5" height="28" rx="3" fill="#e2e6fc"/>
+<rect x="478.0" y="34" width="15.5" height="28" rx="3" fill="#e2e6fc"/>
+<rect x="494.5" y="34" width="15.5" height="28" rx="3" fill="#e2e6fc"/>
+<rect x="511.0" y="34" width="15.5" height="28" rx="3" fill="#e2e6fc"/>
+<rect x="527.5" y="34" width="15.5" height="28" rx="3" fill="#e2e6fc"/>
+<line x1="279.5" x2="279.5" y1="28" y2="68" stroke="#16181d" stroke-width="1.5"/>
+<text x="16.0" y="22.0" font-family="IBM Plex Mono, ui-monospace, monospace" font-size="10.5" fill="#474c59" text-anchor="start" font-weight="400" >bits 31 … 16: weight 2j+1</text>
+<text x="544.0" y="22.0" font-family="IBM Plex Mono, ui-monospace, monospace" font-size="10.5" fill="#474c59" text-anchor="end" font-weight="400" >bits 15 … 0: weight 2j</text>
+<rect x="16" y="76" width="10" height="10" rx="2" fill="#16181d"/>
+<text x="32.0" y="85.0" font-family="IBM Plex Mono, ui-monospace, monospace" font-size="10.5" fill="#626776" text-anchor="start" font-weight="400" >sign</text>
+<rect x="136" y="76" width="10" height="10" rx="2" fill="#2e47e6"/>
+<text x="152.0" y="85.0" font-family="IBM Plex Mono, ui-monospace, monospace" font-size="10.5" fill="#626776" text-anchor="start" font-weight="400" >exponent (8)</text>
+<rect x="256" y="76" width="10" height="10" rx="2" fill="#c9cff9"/>
+<text x="272.0" y="85.0" font-family="IBM Plex Mono, ui-monospace, monospace" font-size="10.5" fill="#626776" text-anchor="start" font-weight="400" >mantissa (7)</text>
+<rect x="16" y="104" width="318" height="22" rx="5" fill="#ebe6db"/>
+<text x="26.0" y="120.0" font-family="IBM Plex Mono, ui-monospace, monospace" font-size="12" fill="#16181d" text-anchor="start" font-weight="500" >bitcast&lt;f32&gt;(w &amp; 0xffff0000u)</text>
+<text x="346.0" y="120.0" font-family="IBM Plex Mono, ui-monospace, monospace" font-size="11" fill="#626776" text-anchor="start" font-weight="400" >→ weight 2j+1</text>
+<rect x="16" y="130" width="318" height="22" rx="5" fill="#ebe6db"/>
+<text x="26.0" y="146.0" font-family="IBM Plex Mono, ui-monospace, monospace" font-size="12" fill="#16181d" text-anchor="start" font-weight="500" >bitcast&lt;f32&gt;(w &lt;&lt; 16u)</text>
+<text x="346.0" y="146.0" font-family="IBM Plex Mono, ui-monospace, monospace" font-size="11" fill="#626776" text-anchor="start" font-weight="400" >→ weight 2j</text>
+</svg>
+        <figcaption><span class="fig">Fig. 3</span>bf16 is the top half of an f32, so a mask or a shift turns each half of a packed word back into a float.</figcaption>
+      </figure>
+      <div class="plate facts">
+        <h4>Also inside</h4>
+        <div><b>stream</b><span>A safetensors parser feeds each tensor to the GPU as soon as its bytes arrive; the JavaScript heap never holds the checkpoint.</span></div>
+        <div><b>cache</b><span>Chat turns reuse the KV cache for the shared prefix, so a follow-up only computes its new tokens.</span></div>
+        <div><b>53</b><span>tests: kernels against float64 references, parity runs on tiny random checkpoints, the tokenizer against Hugging Face.</span></div>
+      </div>
+    </div>
+  </div>
+</section>
 
-    <!-- About -->
-    <section class="section" id="about">
-      <div class="container">
-        <div class="section-header" data-reveal>
-          <div class="section-label">01 / About</div>
-          <h2 class="section-title">Background</h2>
+<section class="block">
+  <div class="wrap">
+    <div class="section-head"><span class="num">02</span><h2>More I've built</h2><p>every number below comes from the repo's own tests and benchmarks</p></div>
+    <div class="grid">
+      <article class="card">
+        <p class="kicker">Python · PyTorch · FastAPI</p>
+        <h3>FlashServe</h3>
+        <p>An inference engine for Hugging Face Llama checkpoints with an OpenAI-compatible streaming API: FlashAttention-style tiled attention, a KV cache, speculative decoding and a paged KV cache.</p>
+        <figure><svg viewBox="0 0 520 110" role="img" class="chart"><title>KV cache: 17.7 tok/s; Full recompute: 2.9 tok/s</title>
+<text x="0.0" y="19.0" font-family="IBM Plex Sans, system-ui, sans-serif" font-size="12" fill="#474c59" text-anchor="start" font-weight="400" >KV cache</text>
+<rect x="150" y="0" width="280" height="30" rx="6" fill="#ebe6db"/>
+<rect x="150" y="0" width="280.0" height="30" rx="6" fill="#2e47e6"/>
+<text x="440.0" y="19.5" font-family="IBM Plex Mono, ui-monospace, monospace" font-size="12.5" fill="#16181d" text-anchor="start" font-weight="500" >17.7 tok/s</text>
+<text x="0.0" y="63.0" font-family="IBM Plex Sans, system-ui, sans-serif" font-size="12" fill="#474c59" text-anchor="start" font-weight="400" >Full recompute</text>
+<rect x="150" y="44" width="280" height="30" rx="6" fill="#ebe6db"/>
+<rect x="150" y="44" width="45.9" height="30" rx="6" fill="#b9b2a3"/>
+<text x="205.9" y="63.5" font-family="IBM Plex Mono, ui-monospace, monospace" font-size="12.5" fill="#16181d" text-anchor="start" font-weight="500" >2.9 tok/s</text>
+<text x="0.0" y="106.0" font-family="IBM Plex Mono, ui-monospace, monospace" font-size="10.5" fill="#626776" text-anchor="start" font-weight="400" >SmolLM2-135M, 64-token prompt, 128 new tokens, 2 vCPUs</text>
+</svg><figcaption>Decode throughput with and without the KV cache.</figcaption></figure>
+        <ul class="chips"><li>logits within 2.5e-5 of transformers</li><li>greedy output identical</li><li>speculative decoding</li></ul>
+        <a class="more" href="https://github.com/DilpreetBansi/flashserve">Source <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 8h10M9 4l4 4-4 4"/></svg></a>
+      </article>
+      <article class="card">
+        <p class="kicker">Python · PyTorch · torch.distributed</p>
+        <h3>TinyTrain</h3>
+        <p>Data, tensor (Megatron-style) and pipeline (GPipe) parallelism for GPT training, written on point-to-point ops with a hand-written ring all-reduce. Multi-process tests prove each one matches single-process training.</p>
+        <figure><svg viewBox="0 0 560 250" role="img" aria-labelledby="ttl" class="chart">
+<title id="ttl">Training loss for 300 steps: single process, data parallel, tensor parallel and pipeline parallel runs lie on top of each other.</title>
+<line x1="44" x2="548" y1="195.8" y2="195.8" stroke="#d6cfc0" stroke-width="1"/>
+<text x="36.0" y="199.8" font-family="IBM Plex Mono, ui-monospace, monospace" font-size="10.5" fill="#626776" text-anchor="end" font-weight="400" >2.5</text>
+<line x1="44" x2="548" y1="145.3" y2="145.3" stroke="#d6cfc0" stroke-width="1"/>
+<text x="36.0" y="149.3" font-family="IBM Plex Mono, ui-monospace, monospace" font-size="10.5" fill="#626776" text-anchor="end" font-weight="400" >3.0</text>
+<line x1="44" x2="548" y1="94.8" y2="94.8" stroke="#d6cfc0" stroke-width="1"/>
+<text x="36.0" y="98.8" font-family="IBM Plex Mono, ui-monospace, monospace" font-size="10.5" fill="#626776" text-anchor="end" font-weight="400" >3.5</text>
+<line x1="44" x2="548" y1="44.3" y2="44.3" stroke="#d6cfc0" stroke-width="1"/>
+<text x="36.0" y="48.3" font-family="IBM Plex Mono, ui-monospace, monospace" font-size="10.5" fill="#626776" text-anchor="end" font-weight="400" >4.0</text>
+<text x="44.0" y="238.0" font-family="IBM Plex Mono, ui-monospace, monospace" font-size="10.5" fill="#626776" text-anchor="middle" font-weight="400" >0</text>
+<text x="210.9" y="238.0" font-family="IBM Plex Mono, ui-monospace, monospace" font-size="10.5" fill="#626776" text-anchor="middle" font-weight="400" >100</text>
+<text x="379.4" y="238.0" font-family="IBM Plex Mono, ui-monospace, monospace" font-size="10.5" fill="#626776" text-anchor="middle" font-weight="400" >200</text>
+<text x="548.0" y="238.0" font-family="IBM Plex Mono, ui-monospace, monospace" font-size="10.5" fill="#626776" text-anchor="end" font-weight="400" >300 steps</text>
+<path d="M44.0 20.1 L59.2 102.4 L76.0 112.3 L92.9 112.2 L109.7 119.5 L126.6 130.8 L143.5 144.5 L160.3 154.4 L177.2 165.6 L194.0 169.4 L210.9 172.8 L227.7 170.1 L244.6 178.2 L261.4 173.6 L278.3 178.9 L295.2 186.3 L312.0 185.1 L328.9 192.1 L345.7 187.9 L362.6 193.8 L379.4 191.9 L396.3 191.8 L413.2 189.8 L430.0 192.8 L446.9 192.0 L463.7 194.9 L480.6 196.2 L497.4 198.5 L514.3 200.9 L531.1 205.1 L548.0 201.3" fill="none" stroke="#b9b2a3" stroke-width="7" stroke-linejoin="round" />
+<path d="M44.0 20.1 L59.2 102.4 L76.0 112.3 L92.9 112.2 L109.7 119.5 L126.6 130.8 L143.5 144.5 L160.3 154.5 L177.2 165.6 L194.0 169.5 L210.9 173.0 L227.7 170.0 L244.6 178.1 L261.4 173.4 L278.3 179.0 L295.2 186.5 L312.0 184.8 L328.9 191.8 L345.7 187.7 L362.6 193.5 L379.4 191.9 L396.3 191.8 L413.2 189.2 L430.0 193.6 L446.9 192.5 L463.7 195.4 L480.6 196.4 L497.4 198.1 L514.3 200.5 L531.1 205.0 L548.0 202.0" fill="none" stroke="#2e47e6" stroke-width="1.8" stroke-linejoin="round" />
+<path d="M44.0 20.1 L59.2 102.4 L76.0 112.3 L92.9 112.2 L109.7 119.5 L126.6 130.8 L143.5 144.5 L160.3 154.5 L177.2 165.7 L194.0 169.4 L210.9 173.3 L227.7 170.0 L244.6 178.1 L261.4 173.5 L278.3 178.5 L295.2 186.0 L312.0 185.0 L328.9 192.2 L345.7 187.1 L362.6 193.8 L379.4 191.7 L396.3 192.1 L413.2 189.8 L430.0 193.8 L446.9 191.4 L463.7 194.5 L480.6 195.7 L497.4 198.4 L514.3 198.1 L531.1 204.9 L548.0 200.6" fill="none" stroke="#d9622b" stroke-width="1.8" stroke-linejoin="round" stroke-dasharray="5 4"/>
+<path d="M44.0 20.1 L59.2 102.4 L76.0 112.3 L92.9 112.2 L109.7 119.5 L126.6 130.8 L143.5 144.5 L160.3 154.5 L177.2 165.7 L194.0 169.5 L210.9 173.0 L227.7 170.2 L244.6 178.4 L261.4 173.8 L278.3 178.8 L295.2 186.4 L312.0 184.8 L328.9 191.9 L345.7 187.2 L362.6 193.8 L379.4 191.8 L396.3 191.4 L413.2 189.8 L430.0 193.6 L446.9 193.1 L463.7 195.4 L480.6 196.6 L497.4 198.6 L514.3 200.7 L531.1 205.1 L548.0 202.0" fill="none" stroke="#16181d" stroke-width="1.6" stroke-linejoin="round" stroke-dasharray="1.5 3.5" stroke-linecap="round"/>
+<line x1="378" x2="404" y1="28" y2="28" stroke="#b9b2a3" stroke-width="5" />
+<text x="412.0" y="32.0" font-family="IBM Plex Mono, ui-monospace, monospace" font-size="11" fill="#474c59" text-anchor="start" font-weight="400" >single process</text>
+<line x1="378" x2="404" y1="46" y2="46" stroke="#2e47e6" stroke-width="1.8" />
+<text x="412.0" y="50.0" font-family="IBM Plex Mono, ui-monospace, monospace" font-size="11" fill="#474c59" text-anchor="start" font-weight="400" >data parallel</text>
+<line x1="378" x2="404" y1="64" y2="64" stroke="#d9622b" stroke-width="1.8" stroke-dasharray="5 4"/>
+<text x="412.0" y="68.0" font-family="IBM Plex Mono, ui-monospace, monospace" font-size="11" fill="#474c59" text-anchor="start" font-weight="400" >tensor parallel</text>
+<line x1="378" x2="404" y1="82" y2="82" stroke="#16181d" stroke-width="1.6" stroke-dasharray="1.5 3.5" stroke-linecap="round"/>
+<text x="412.0" y="86.0" font-family="IBM Plex Mono, ui-monospace, monospace" font-size="11" fill="#474c59" text-anchor="start" font-weight="400" >pipeline parallel</text>
+</svg><figcaption>Same batches, same initial weights: four strategies, one curve.</figcaption></figure>
+        <ul class="chips"><li>ring all-reduce</li><li>42 tests</li><li>loss scaling</li></ul>
+        <a class="more" href="https://github.com/DilpreetBansi/tinytrain">Source <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 8h10M9 4l4 4-4 4"/></svg></a>
+      </article>
+      <article class="card">
+        <p class="kicker">Python · PyTorch · interpretability</p>
+        <h3>NeuronLens</h3>
+        <p>Activation patching, causal tracing and logit attribution on GPT-2. Its tests reproduce three published results from scratch: induction heads, the indirect-object circuit and causal tracing of a fact.</p>
+        <figure><svg viewBox="0 0 456 318" role="img" aria-labelledby="ioit" class="chart">
+<title id="ioit">Logit difference recovered by patching each GPT-2 head on the indirect-object task. Heads 9.9, 9.6 and 10.0 are strongly positive (name movers); 10.7 and 11.10 are negative.</title>
+<rect x="30" y="8" width="21" height="21" rx="3" fill="#f5f4f6"/>
+<rect x="53" y="8" width="21" height="21" rx="3" fill="#e2e4f4"/>
+<rect x="76" y="8" width="21" height="21" rx="3" fill="#f9f8f6"/>
+<rect x="99" y="8" width="21" height="21" rx="3" fill="#e8e9f5"/>
+<rect x="122" y="8" width="21" height="21" rx="3" fill="#dadef3"/>
+<rect x="145" y="8" width="21" height="21" rx="3" fill="#e2e4f4"/>
+<rect x="168" y="8" width="21" height="21" rx="3" fill="#ecedf5"/>
+<rect x="191" y="8" width="21" height="21" rx="3" fill="#f7f6f6"/>
+<rect x="214" y="8" width="21" height="21" rx="3" fill="#f5f5f6"/>
+<rect x="237" y="8" width="21" height="21" rx="3" fill="#faf9f6"/>
+<rect x="260" y="8" width="21" height="21" rx="3" fill="#faf8f3"/>
+<rect x="283" y="8" width="21" height="21" rx="3" fill="#faf6f1"/>
+<text x="22.0" y="22.0" font-family="IBM Plex Mono, ui-monospace, monospace" font-size="9.5" fill="#626776" text-anchor="end" font-weight="400" >0</text>
+<rect x="30" y="31" width="21" height="21" rx="3" fill="#f6f6f6"/>
+<rect x="53" y="31" width="21" height="21" rx="3" fill="#faf9f6"/>
+<rect x="76" y="31" width="21" height="21" rx="3" fill="#fbf9f5"/>
+<rect x="99" y="31" width="21" height="21" rx="3" fill="#fbf9f4"/>
+<rect x="122" y="31" width="21" height="21" rx="3" fill="#fbf8f4"/>
+<rect x="145" y="31" width="21" height="21" rx="3" fill="#faf6f0"/>
+<rect x="168" y="31" width="21" height="21" rx="3" fill="#f2f2f5"/>
+<rect x="191" y="31" width="21" height="21" rx="3" fill="#f7f7f6"/>
+<rect x="214" y="31" width="21" height="21" rx="3" fill="#fbf8f4"/>
+<rect x="237" y="31" width="21" height="21" rx="3" fill="#fbfaf6"/>
+<rect x="260" y="31" width="21" height="21" rx="3" fill="#fbf9f5"/>
+<rect x="283" y="31" width="21" height="21" rx="3" fill="#f8f8f6"/>
+<text x="22.0" y="45.0" font-family="IBM Plex Mono, ui-monospace, monospace" font-size="9.5" fill="#626776" text-anchor="end" font-weight="400" >1</text>
+<rect x="30" y="54" width="21" height="21" rx="3" fill="#fbf9f5"/>
+<rect x="53" y="54" width="21" height="21" rx="3" fill="#f5f5f6"/>
+<rect x="76" y="54" width="21" height="21" rx="3" fill="#f8f7f6"/>
+<rect x="99" y="54" width="21" height="21" rx="3" fill="#faf9f6"/>
+<rect x="122" y="54" width="21" height="21" rx="3" fill="#f8f8f6"/>
+<rect x="145" y="54" width="21" height="21" rx="3" fill="#fbf9f5"/>
+<rect x="168" y="54" width="21" height="21" rx="3" fill="#fbfaf6"/>
+<rect x="191" y="54" width="21" height="21" rx="3" fill="#fbf9f5"/>
+<rect x="214" y="54" width="21" height="21" rx="3" fill="#fbfaf6"/>
+<rect x="237" y="54" width="21" height="21" rx="3" fill="#fbfaf5"/>
+<rect x="260" y="54" width="21" height="21" rx="3" fill="#faf9f6"/>
+<rect x="283" y="54" width="21" height="21" rx="3" fill="#fbf9f5"/>
+<text x="22.0" y="68.0" font-family="IBM Plex Mono, ui-monospace, monospace" font-size="9.5" fill="#626776" text-anchor="end" font-weight="400" >2</text>
+<rect x="30" y="77" width="21" height="21" rx="3" fill="#f6f6f6"/>
+<rect x="53" y="77" width="21" height="21" rx="3" fill="#fbf8f3"/>
+<rect x="76" y="77" width="21" height="21" rx="3" fill="#faf9f6"/>
+<rect x="99" y="77" width="21" height="21" rx="3" fill="#f9f8f6"/>
+<rect x="122" y="77" width="21" height="21" rx="3" fill="#faf8f3"/>
+<rect x="145" y="77" width="21" height="21" rx="3" fill="#fbfaf6"/>
+<rect x="168" y="77" width="21" height="21" rx="3" fill="#f7f7f6"/>
+<rect x="191" y="77" width="21" height="21" rx="3" fill="#fbf9f5"/>
+<rect x="214" y="77" width="21" height="21" rx="3" fill="#fbfaf6"/>
+<rect x="237" y="77" width="21" height="21" rx="3" fill="#f9f9f6"/>
+<rect x="260" y="77" width="21" height="21" rx="3" fill="#fbf9f4"/>
+<rect x="283" y="77" width="21" height="21" rx="3" fill="#fbf9f4"/>
+<text x="22.0" y="91.0" font-family="IBM Plex Mono, ui-monospace, monospace" font-size="9.5" fill="#626776" text-anchor="end" font-weight="400" >3</text>
+<rect x="30" y="100" width="21" height="21" rx="3" fill="#fbfaf6"/>
+<rect x="53" y="100" width="21" height="21" rx="3" fill="#faf9f6"/>
+<rect x="76" y="100" width="21" height="21" rx="3" fill="#fbf9f5"/>
+<rect x="99" y="100" width="21" height="21" rx="3" fill="#f6f6f6"/>
+<rect x="122" y="100" width="21" height="21" rx="3" fill="#fbfaf6"/>
+<rect x="145" y="100" width="21" height="21" rx="3" fill="#fbfaf5"/>
+<rect x="168" y="100" width="21" height="21" rx="3" fill="#f9f9f6"/>
+<rect x="191" y="100" width="21" height="21" rx="3" fill="#faf7f3"/>
+<rect x="214" y="100" width="21" height="21" rx="3" fill="#f8f8f6"/>
+<rect x="237" y="100" width="21" height="21" rx="3" fill="#fbfaf6"/>
+<rect x="260" y="100" width="21" height="21" rx="3" fill="#faf8f3"/>
+<rect x="283" y="100" width="21" height="21" rx="3" fill="#fbf9f5"/>
+<text x="22.0" y="114.0" font-family="IBM Plex Mono, ui-monospace, monospace" font-size="9.5" fill="#626776" text-anchor="end" font-weight="400" >4</text>
+<rect x="30" y="123" width="21" height="21" rx="3" fill="#fbf8f4"/>
+<rect x="53" y="123" width="21" height="21" rx="3" fill="#fbfaf6"/>
+<rect x="76" y="123" width="21" height="21" rx="3" fill="#faf9f6"/>
+<rect x="99" y="123" width="21" height="21" rx="3" fill="#f8f8f6"/>
+<rect x="122" y="123" width="21" height="21" rx="3" fill="#fbfaf6"/>
+<rect x="145" y="123" width="21" height="21" rx="3" fill="#fbfaf6"/>
+<rect x="168" y="123" width="21" height="21" rx="3" fill="#f9f9f6"/>
+<rect x="191" y="123" width="21" height="21" rx="3" fill="#faf9f6"/>
+<rect x="214" y="123" width="21" height="21" rx="3" fill="#f5f5f6"/>
+<rect x="237" y="123" width="21" height="21" rx="3" fill="#f4f4f5"/>
+<rect x="260" y="123" width="21" height="21" rx="3" fill="#fbf8f3"/>
+<rect x="283" y="123" width="21" height="21" rx="3" fill="#faf6f0"/>
+<text x="22.0" y="137.0" font-family="IBM Plex Mono, ui-monospace, monospace" font-size="9.5" fill="#626776" text-anchor="end" font-weight="400" >5</text>
+<rect x="30" y="146" width="21" height="21" rx="3" fill="#f9efe7"/>
+<rect x="53" y="146" width="21" height="21" rx="3" fill="#f8f8f6"/>
+<rect x="76" y="146" width="21" height="21" rx="3" fill="#fbf9f5"/>
+<rect x="99" y="146" width="21" height="21" rx="3" fill="#fbf9f5"/>
+<rect x="122" y="146" width="21" height="21" rx="3" fill="#f4f4f5"/>
+<rect x="145" y="146" width="21" height="21" rx="3" fill="#f9f8f6"/>
+<rect x="168" y="146" width="21" height="21" rx="3" fill="#faf8f3"/>
+<rect x="191" y="146" width="21" height="21" rx="3" fill="#f5f5f6"/>
+<rect x="214" y="146" width="21" height="21" rx="3" fill="#fbfaf6"/>
+<rect x="237" y="146" width="21" height="21" rx="3" fill="#fbfaf6"/>
+<rect x="260" y="146" width="21" height="21" rx="3" fill="#fafaf6"/>
+<rect x="283" y="146" width="21" height="21" rx="3" fill="#fbfaf6"/>
+<text x="22.0" y="160.0" font-family="IBM Plex Mono, ui-monospace, monospace" font-size="9.5" fill="#626776" text-anchor="end" font-weight="400" >6</text>
+<rect x="30" y="169" width="21" height="21" rx="3" fill="#faf9f6"/>
+<rect x="53" y="169" width="21" height="21" rx="3" fill="#fbfaf6"/>
+<rect x="76" y="169" width="21" height="21" rx="3" fill="#fbfaf6"/>
+<rect x="99" y="169" width="21" height="21" rx="3" fill="#f9f2eb"/>
+<rect x="122" y="169" width="21" height="21" rx="3" fill="#fbfaf6"/>
+<rect x="145" y="169" width="21" height="21" rx="3" fill="#f7f7f6"/>
+<rect x="168" y="169" width="21" height="21" rx="3" fill="#faf9f6"/>
+<rect x="191" y="169" width="21" height="21" rx="3" fill="#fbf9f5"/>
+<rect x="214" y="169" width="21" height="21" rx="3" fill="#f7f6f6"/>
+<rect x="237" y="169" width="21" height="21" rx="3" fill="#e2e4f4"/>
+<rect x="260" y="169" width="21" height="21" rx="3" fill="#fbfaf6"/>
+<rect x="283" y="169" width="21" height="21" rx="3" fill="#fbf8f3"/>
+<text x="22.0" y="183.0" font-family="IBM Plex Mono, ui-monospace, monospace" font-size="9.5" fill="#626776" text-anchor="end" font-weight="400" >7</text>
+<rect x="30" y="192" width="21" height="21" rx="3" fill="#fbf9f5"/>
+<rect x="53" y="192" width="21" height="21" rx="3" fill="#fbf9f5"/>
+<rect x="76" y="192" width="21" height="21" rx="3" fill="#fbf8f4"/>
+<rect x="99" y="192" width="21" height="21" rx="3" fill="#f2f2f5"/>
+<rect x="122" y="192" width="21" height="21" rx="3" fill="#fbfaf6"/>
+<rect x="145" y="192" width="21" height="21" rx="3" fill="#f9f1ea"/>
+<rect x="168" y="192" width="21" height="21" rx="3" fill="#ecedf5"/>
+<rect x="191" y="192" width="21" height="21" rx="3" fill="#fbfaf5"/>
+<rect x="214" y="192" width="21" height="21" rx="3" fill="#f6f5f6"/>
+<rect x="237" y="192" width="21" height="21" rx="3" fill="#fbfaf6"/>
+<rect x="260" y="192" width="21" height="21" rx="3" fill="#d8dcf3"/>
+<rect x="283" y="192" width="21" height="21" rx="3" fill="#fbf9f5"/>
+<text x="22.0" y="206.0" font-family="IBM Plex Mono, ui-monospace, monospace" font-size="9.5" fill="#626776" text-anchor="end" font-weight="400" >8</text>
+<rect x="30" y="215" width="21" height="21" rx="3" fill="#d6d9f3"/>
+<rect x="53" y="215" width="21" height="21" rx="3" fill="#fbf9f4"/>
+<rect x="76" y="215" width="21" height="21" rx="3" fill="#eaebf5"/>
+<rect x="99" y="215" width="21" height="21" rx="3" fill="#f4f4f5"/>
+<rect x="122" y="215" width="21" height="21" rx="3" fill="#eff0f5"/>
+<rect x="145" y="215" width="21" height="21" rx="3" fill="#faf5ef"/>
+<rect x="168" y="215" width="21" height="21" rx="3" fill="#6477ea"/>
+<rect x="191" y="215" width="21" height="21" rx="3" fill="#e3e5f4"/>
+<rect x="214" y="215" width="21" height="21" rx="3" fill="#e2e4f4"/>
+<rect x="237" y="215" width="21" height="21" rx="3" fill="#2e47e6"/>
+<rect x="260" y="215" width="21" height="21" rx="3" fill="#fbf9f5"/>
+<rect x="283" y="215" width="21" height="21" rx="3" fill="#fbf9f5"/>
+<text x="22.0" y="229.0" font-family="IBM Plex Mono, ui-monospace, monospace" font-size="9.5" fill="#626776" text-anchor="end" font-weight="400" >9</text>
+<rect x="30" y="238" width="21" height="21" rx="3" fill="#7a89ec"/>
+<rect x="53" y="238" width="21" height="21" rx="3" fill="#dcdff4"/>
+<rect x="76" y="238" width="21" height="21" rx="3" fill="#f7e9df"/>
+<rect x="99" y="238" width="21" height="21" rx="3" fill="#ebecf5"/>
+<rect x="122" y="238" width="21" height="21" rx="3" fill="#faf9f6"/>
+<rect x="145" y="238" width="21" height="21" rx="3" fill="#f8f8f6"/>
+<rect x="168" y="238" width="21" height="21" rx="3" fill="#f2f2f5"/>
+<rect x="191" y="238" width="21" height="21" rx="3" fill="#e18559"/>
+<rect x="214" y="238" width="21" height="21" rx="3" fill="#fbf9f4"/>
+<rect x="237" y="238" width="21" height="21" rx="3" fill="#f5f5f6"/>
+<rect x="260" y="238" width="21" height="21" rx="3" fill="#daddf3"/>
+<rect x="283" y="238" width="21" height="21" rx="3" fill="#f4f4f5"/>
+<text x="22.0" y="252.0" font-family="IBM Plex Mono, ui-monospace, monospace" font-size="9.5" fill="#626776" text-anchor="end" font-weight="400" >10</text>
+<rect x="30" y="261" width="21" height="21" rx="3" fill="#f4f4f5"/>
+<rect x="53" y="261" width="21" height="21" rx="3" fill="#f6e3d7"/>
+<rect x="76" y="261" width="21" height="21" rx="3" fill="#f8ebe2"/>
+<rect x="99" y="261" width="21" height="21" rx="3" fill="#d9ddf3"/>
+<rect x="122" y="261" width="21" height="21" rx="3" fill="#faf5f0"/>
+<rect x="145" y="261" width="21" height="21" rx="3" fill="#faf5f0"/>
+<rect x="168" y="261" width="21" height="21" rx="3" fill="#f8eee6"/>
+<rect x="191" y="261" width="21" height="21" rx="3" fill="#f6f6f6"/>
+<rect x="214" y="261" width="21" height="21" rx="3" fill="#f3f3f5"/>
+<rect x="237" y="261" width="21" height="21" rx="3" fill="#f3f3f5"/>
+<rect x="260" y="261" width="21" height="21" rx="3" fill="#ecb79c"/>
+<rect x="283" y="261" width="21" height="21" rx="3" fill="#eaebf5"/>
+<text x="22.0" y="275.0" font-family="IBM Plex Mono, ui-monospace, monospace" font-size="9.5" fill="#626776" text-anchor="end" font-weight="400" >11</text>
+<text x="40.5" y="296.0" font-family="IBM Plex Mono, ui-monospace, monospace" font-size="9.5" fill="#626776" text-anchor="middle" font-weight="400" >0</text>
+<text x="63.5" y="296.0" font-family="IBM Plex Mono, ui-monospace, monospace" font-size="9.5" fill="#626776" text-anchor="middle" font-weight="400" >1</text>
+<text x="86.5" y="296.0" font-family="IBM Plex Mono, ui-monospace, monospace" font-size="9.5" fill="#626776" text-anchor="middle" font-weight="400" >2</text>
+<text x="109.5" y="296.0" font-family="IBM Plex Mono, ui-monospace, monospace" font-size="9.5" fill="#626776" text-anchor="middle" font-weight="400" >3</text>
+<text x="132.5" y="296.0" font-family="IBM Plex Mono, ui-monospace, monospace" font-size="9.5" fill="#626776" text-anchor="middle" font-weight="400" >4</text>
+<text x="155.5" y="296.0" font-family="IBM Plex Mono, ui-monospace, monospace" font-size="9.5" fill="#626776" text-anchor="middle" font-weight="400" >5</text>
+<text x="178.5" y="296.0" font-family="IBM Plex Mono, ui-monospace, monospace" font-size="9.5" fill="#626776" text-anchor="middle" font-weight="400" >6</text>
+<text x="201.5" y="296.0" font-family="IBM Plex Mono, ui-monospace, monospace" font-size="9.5" fill="#626776" text-anchor="middle" font-weight="400" >7</text>
+<text x="224.5" y="296.0" font-family="IBM Plex Mono, ui-monospace, monospace" font-size="9.5" fill="#626776" text-anchor="middle" font-weight="400" >8</text>
+<text x="247.5" y="296.0" font-family="IBM Plex Mono, ui-monospace, monospace" font-size="9.5" fill="#626776" text-anchor="middle" font-weight="400" >9</text>
+<text x="270.5" y="296.0" font-family="IBM Plex Mono, ui-monospace, monospace" font-size="9.5" fill="#626776" text-anchor="middle" font-weight="400" >10</text>
+<text x="293.5" y="296.0" font-family="IBM Plex Mono, ui-monospace, monospace" font-size="9.5" fill="#626776" text-anchor="middle" font-weight="400" >11</text>
+<text x="168.0" y="312.0" font-family="IBM Plex Mono, ui-monospace, monospace" font-size="10.5" fill="#626776" text-anchor="middle" font-weight="400" >head</text>
+<text x="8.0" y="146.0" font-family="IBM Plex Mono, ui-monospace, monospace" font-size="10.5" fill="#626776" text-anchor="middle" font-weight="400" transform="rotate(-90 8 146.0)">layer</text>
+<rect x="235.5" y="213.5" width="24" height="24" rx="4" fill="none" stroke="#16181d" stroke-width="1.3"/>
+<text x="330.0" y="152.0" font-family="IBM Plex Mono, ui-monospace, monospace" font-size="10.5" fill="#474c59" text-anchor="start" font-weight="400" >9.9 name mover</text>
+<circle cx="324" cy="148" r="3.5" fill="#2e47e6"/>
+<rect x="166.5" y="213.5" width="24" height="24" rx="4" fill="none" stroke="#16181d" stroke-width="1.3"/>
+<text x="330.0" y="169.0" font-family="IBM Plex Mono, ui-monospace, monospace" font-size="10.5" fill="#474c59" text-anchor="start" font-weight="400" >9.6 name mover</text>
+<circle cx="324" cy="165" r="3.5" fill="#2e47e6"/>
+<rect x="28.5" y="236.5" width="24" height="24" rx="4" fill="none" stroke="#16181d" stroke-width="1.3"/>
+<text x="330.0" y="186.0" font-family="IBM Plex Mono, ui-monospace, monospace" font-size="10.5" fill="#474c59" text-anchor="start" font-weight="400" >10.0 name mover</text>
+<circle cx="324" cy="182" r="3.5" fill="#2e47e6"/>
+<rect x="189.5" y="236.5" width="24" height="24" rx="4" fill="none" stroke="#16181d" stroke-width="1.3"/>
+<text x="330.0" y="203.0" font-family="IBM Plex Mono, ui-monospace, monospace" font-size="10.5" fill="#474c59" text-anchor="start" font-weight="400" >10.7 negative</text>
+<circle cx="324" cy="199" r="3.5" fill="#d9622b"/>
+<rect x="258.5" y="259.5" width="24" height="24" rx="4" fill="none" stroke="#16181d" stroke-width="1.3"/>
+<text x="330.0" y="220.0" font-family="IBM Plex Mono, ui-monospace, monospace" font-size="10.5" fill="#474c59" text-anchor="start" font-weight="400" >11.10 negative</text>
+<circle cx="324" cy="216" r="3.5" fill="#d9622b"/>
+</svg><figcaption>Patching each head into a corrupted prompt: the name movers light up.</figcaption></figure>
+        <ul class="chips"><li>induction heads 5.5 · 6.9 · 7.10</li><li>P(" Apple") 0.83 → 0.002 under noise</li></ul>
+        <a class="more" href="https://github.com/DilpreetBansi/neuronlens">Source <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 8h10M9 4l4 4-4 4"/></svg></a>
+      </article>
+      <article class="card">
+        <p class="kicker">C++17 · Python</p>
+        <h3>LatencyArb</h3>
+        <p>A header-only C++17 core (lock-free SPSC queue, memory pool, integer-tick order book, execution engine) plus a Python research layer with cointegration tests, a Kalman-filter hedge ratio and a look-ahead-free backtester.</p>
+        <figure><svg viewBox="0 0 520 154" role="img" class="chart"><title>p50 round trip: 63 ns; p99: 72 ns; p99.9: 94 ns</title>
+<text x="0.0" y="19.0" font-family="IBM Plex Sans, system-ui, sans-serif" font-size="12" fill="#474c59" text-anchor="start" font-weight="400" >p50 round trip</text>
+<rect x="150" y="0" width="280" height="30" rx="6" fill="#ebe6db"/>
+<rect x="150" y="0" width="187.7" height="30" rx="6" fill="#2e47e6"/>
+<text x="347.7" y="19.5" font-family="IBM Plex Mono, ui-monospace, monospace" font-size="12.5" fill="#16181d" text-anchor="start" font-weight="500" >63 ns</text>
+<text x="0.0" y="63.0" font-family="IBM Plex Sans, system-ui, sans-serif" font-size="12" fill="#474c59" text-anchor="start" font-weight="400" >p99</text>
+<rect x="150" y="44" width="280" height="30" rx="6" fill="#ebe6db"/>
+<rect x="150" y="44" width="214.5" height="30" rx="6" fill="#7d8cf0"/>
+<text x="374.5" y="63.5" font-family="IBM Plex Mono, ui-monospace, monospace" font-size="12.5" fill="#16181d" text-anchor="start" font-weight="500" >72 ns</text>
+<text x="0.0" y="107.0" font-family="IBM Plex Sans, system-ui, sans-serif" font-size="12" fill="#474c59" text-anchor="start" font-weight="400" >p99.9</text>
+<rect x="150" y="88" width="280" height="30" rx="6" fill="#ebe6db"/>
+<rect x="150" y="88" width="280.0" height="30" rx="6" fill="#b9b2a3"/>
+<text x="440.0" y="107.5" font-family="IBM Plex Mono, ui-monospace, monospace" font-size="12.5" fill="#16181d" text-anchor="start" font-weight="500" >94 ns</text>
+<text x="0.0" y="150.0" font-family="IBM Plex Mono, ui-monospace, monospace" font-size="10.5" fill="#626776" text-anchor="start" font-weight="400" >ping-pong between two threads through the SPSC queue</text>
+</svg><figcaption>Round trip through the queue, measured on a 2-vCPU VM.</figcaption></figure>
+        <ul class="chips"><li>227M msgs/s</li><li>clean under TSan and ASan</li></ul>
+        <a class="more" href="https://github.com/DilpreetBansi/latencyarb">Source <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 8h10M9 4l4 4-4 4"/></svg></a>
+      </article>
+      <article class="card wide">
+        <div>
+          <p class="kicker">Python · asyncio · LLM agents</p>
+          <h3>AgentForge</h3>
+          <p>A planner splits a task into steps with dependencies, executors run the ready steps concurrently with typed tools, and a verifier sends failures back with feedback. It speaks any OpenAI-compatible API, hosted or local.</p>
+          <ul class="chips"><li>OpenAI-style tool calling</li><li>sandboxed tools</li><li>41 tests</li></ul>
+          <a class="more" href="https://github.com/DilpreetBansi/agentforge">Source <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 8h10M9 4l4 4-4 4"/></svg></a>
         </div>
+        <figure><svg viewBox="0 0 560 210" role="img" class="chart"><title>Planner splits the task into steps, executors run ready steps concurrently with tools, the verifier checks the result and sends failures back with feedback.</title>
+<defs><marker id="ah" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0 L8 4 L0 8 z" fill="#474c59"/></marker></defs>
+<rect x="0" y="80" width="80" height="50" rx="10" fill="#ffffff" stroke="#d6cfc0"/>
+<text x="40.0" y="109.0" font-family="IBM Plex Sans, system-ui, sans-serif" font-size="13" fill="#16181d" text-anchor="middle" font-weight="600" >task</text>
+<rect x="112" y="80" width="104" height="50" rx="10" fill="#ffffff" stroke="#d6cfc0"/>
+<text x="164.0" y="103.0" font-family="IBM Plex Sans, system-ui, sans-serif" font-size="13" fill="#16181d" text-anchor="middle" font-weight="600" >Planner</text>
+<text x="164.0" y="120.0" font-family="IBM Plex Mono, ui-monospace, monospace" font-size="10" fill="#626776" text-anchor="middle" font-weight="400" >steps + deps</text>
+<rect x="252" y="22" width="118" height="46" rx="10" fill="#ffffff" stroke="#d6cfc0"/>
+<text x="311.0" y="43.0" font-family="IBM Plex Sans, system-ui, sans-serif" font-size="13" fill="#16181d" text-anchor="middle" font-weight="600" >Executor</text>
+<text x="311.0" y="60.0" font-family="IBM Plex Mono, ui-monospace, monospace" font-size="10" fill="#626776" text-anchor="middle" font-weight="400" >tools</text>
+<rect x="252" y="80" width="118" height="46" rx="10" fill="#ffffff" stroke="#d6cfc0"/>
+<text x="311.0" y="101.0" font-family="IBM Plex Sans, system-ui, sans-serif" font-size="13" fill="#16181d" text-anchor="middle" font-weight="600" >Executor</text>
+<text x="311.0" y="118.0" font-family="IBM Plex Mono, ui-monospace, monospace" font-size="10" fill="#626776" text-anchor="middle" font-weight="400" >tools</text>
+<rect x="252" y="138" width="118" height="46" rx="10" fill="#ffffff" stroke="#d6cfc0"/>
+<text x="311.0" y="159.0" font-family="IBM Plex Sans, system-ui, sans-serif" font-size="13" fill="#16181d" text-anchor="middle" font-weight="600" >Executor</text>
+<text x="311.0" y="176.0" font-family="IBM Plex Mono, ui-monospace, monospace" font-size="10" fill="#626776" text-anchor="middle" font-weight="400" >tools</text>
+<rect x="406" y="80" width="110" height="50" rx="10" fill="#2e47e6" stroke="#2e47e6"/>
+<text x="461.0" y="103.0" font-family="IBM Plex Sans, system-ui, sans-serif" font-size="13" fill="#ffffff" text-anchor="middle" font-weight="600" >Verifier</text>
+<text x="461.0" y="120.0" font-family="IBM Plex Mono, ui-monospace, monospace" font-size="10" fill="#dfe3ff" text-anchor="middle" font-weight="400" >check result</text>
+<path d="M80 105 H108" stroke="#474c59" stroke-width="1.4" fill="none" marker-end="url(#ah)"/>
+<path d="M216 105 C232 105 234 45 248 45" stroke="#474c59" stroke-width="1.4" fill="none" marker-end="url(#ah)"/>
+<path d="M370 45 C386 45 388 105 402 105" stroke="#474c59" stroke-width="1.4" fill="none" marker-end="url(#ah)"/>
+<path d="M216 105 C232 105 234 103 248 103" stroke="#474c59" stroke-width="1.4" fill="none" marker-end="url(#ah)"/>
+<path d="M370 103 C386 103 388 105 402 105" stroke="#474c59" stroke-width="1.4" fill="none" marker-end="url(#ah)"/>
+<path d="M216 105 C232 105 234 161 248 161" stroke="#474c59" stroke-width="1.4" fill="none" marker-end="url(#ah)"/>
+<path d="M370 161 C386 161 388 105 402 105" stroke="#474c59" stroke-width="1.4" fill="none" marker-end="url(#ah)"/>
+<path d="M516 105 H548" stroke="#474c59" stroke-width="1.4" fill="none" marker-end="url(#ah)"/>
+<path d="M461 130 C461 196 311 206 311 184" stroke="#474c59" stroke-width="1.4" fill="none" marker-end="url(#ah)" stroke-dasharray="4 4"/>
+<text x="392.0" y="204.0" font-family="IBM Plex Mono, ui-monospace, monospace" font-size="10.5" fill="#626776" text-anchor="middle" font-weight="400" >retry with feedback</text>
+</svg></figure>
+      </article>
+    </div>
+  </div>
+</section>
 
-        <div class="bento-grid">
-          <!-- Stats -->
-          <div class="bento-card bento-stats" data-reveal>
-            <div class="card-label">By the Numbers</div>
-            <div class="stats-grid">
-              <div>
-                <div class="stat-number"><span class="counter accent" data-target="14">0</span></div>
-                <div class="stat-label">Releases shipped</div>
-              </div>
-              <div>
-                <div class="stat-number"><span class="counter accent" data-target="93">0</span><span class="accent">%</span></div>
-                <div class="stat-label">User adoption rate</div>
-              </div>
-              <div>
-                <div class="stat-number"><span class="counter accent" data-target="82">0</span><span class="accent">%</span></div>
-                <div class="stat-label">Test coverage</div>
-              </div>
-              <div>
-                <div class="stat-number"><span class="counter accent" data-target="5">0</span></div>
-                <div class="stat-label">Open source projects</div>
-              </div>
-            </div>
-          </div>
+<section class="block" id="experience">
+  <div class="wrap">
+    <div class="section-head"><span class="num">03</span><h2>Experience</h2></div>
+    <div class="jobs">
+      <div class="job">
+        <div><div class="when">May 2026 – present</div><div class="org">SOTI</div><div class="role">Software Developer, AI/ML</div></div>
+        <ul>
+          <li>Lead natural-language app generation in <b>SOTI Snap</b>, the company's enterprise low-code platform: plain-English descriptions become production-ready iOS and Android apps, cutting build time <b>80%</b>.</li>
+          <li>Architect LLM pipelines that combine <b>RAG</b>, prompt engineering and <b>agentic workflows</b> to turn requirements into UI, data models and backend logic, in <b>100+ languages</b>.</li>
+          <li>Work 1:1 with the <b>CEO</b> and executives on the AI roadmap; shipped a working prototype in my first month.</li>
+        </ul>
+      </div>
+      <div class="job">
+        <div><div class="when">Jan 2024 – May 2026</div><div class="org">Tegra Lumber</div><div class="role">Software Engineer, Full-Stack</div></div>
+        <ul>
+          <li>As the <b>sole engineer</b>, built the company's operations platform end to end in React/TypeScript, Node and PostgreSQL; inventory and yard management cut cycle-count time <b>45%</b> and stockouts <b>28%</b>.</li>
+          <li>Built a pricing and quoting service that cut quote turnaround from <b>6 hours to 5 minutes</b>, and a customer order portal that moved <b>14%</b> of counter orders online in six weeks.</li>
+          <li>Set up CI/CD with GitHub Actions and Docker (deploys from 15 to 2 minutes) and raised test coverage to <b>82%</b> across 14 releases.</li>
+        </ul>
+      </div>
+      <div class="job">
+        <div><div class="when">Jun – Aug 2025</div><div class="org">Canada Border Services Agency</div><div class="role">Business Support Clerk</div></div>
+        <ul>
+          <li>Supported the Partners in Protection program (<b>3,500+</b> members); built tracking tools for its deliverables that raised task completion efficiency <b>30%</b>.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
 
-          <!-- Skills -->
-          <div class="bento-card bento-skills" data-reveal>
-            <div class="card-label">Core Skills</div>
-
-            <div class="skill-category">
-              <span class="skill-cat-label">Languages</span>
-              <div class="skills-wrap">
-                <span class="skill-pill"><img src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/python/python-original.svg" alt="">Python</span>
-                <span class="skill-pill"><img src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/cplusplus/cplusplus-original.svg" alt="">C++</span>
-                <span class="skill-pill"><img src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/java/java-original.svg" alt="">Java</span>
-                <span class="skill-pill"><img src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/javascript/javascript-original.svg" alt="">JavaScript</span>
-                <span class="skill-pill"><img src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/typescript/typescript-original.svg" alt="">TypeScript</span>
-                <span class="skill-pill"><img src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/c/c-original.svg" alt="">C</span>
-                <span class="skill-pill"><div class="skill-dot"></div>CUDA</span>
-                <span class="skill-pill"><img src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/r/r-original.svg" alt="">R</span>
-                <span class="skill-pill"><div class="skill-dot"></div>SQL</span>
-                <span class="skill-pill"><img src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/matlab/matlab-original.svg" alt="">MATLAB</span>
-              </div>
-            </div>
-
-            <div class="skill-category">
-              <span class="skill-cat-label">Web & Backend</span>
-              <div class="skills-wrap">
-                <span class="skill-pill"><img src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/react/react-original.svg" alt="">React</span>
-                <span class="skill-pill"><img src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/nextjs/nextjs-original.svg" alt="">Next.js</span>
-                <span class="skill-pill"><img src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/nodejs/nodejs-original.svg" alt="">Node.js</span>
-                <span class="skill-pill"><img src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/fastapi/fastapi-original.svg" alt="">FastAPI</span>
-                <span class="skill-pill"><img src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/angular/angular-original.svg" alt="">Angular</span>
-                <span class="skill-pill"><img src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/react/react-original.svg" alt="">React Native</span>
-                <span class="skill-pill"><div class="skill-dot"></div>REST APIs</span>
-                <span class="skill-pill"><div class="skill-dot"></div>GraphQL</span>
-              </div>
-            </div>
-
-            <div class="skill-category">
-              <span class="skill-cat-label">Data & Databases</span>
-              <div class="skills-wrap">
-                <span class="skill-pill"><img src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/postgresql/postgresql-original.svg" alt="">PostgreSQL</span>
-                <span class="skill-pill"><img src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/mysql/mysql-original.svg" alt="">MySQL</span>
-                <span class="skill-pill"><img src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/mongodb/mongodb-original.svg" alt="">MongoDB</span>
-                <span class="skill-pill"><img src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/redis/redis-original.svg" alt="">Redis</span>
-                <span class="skill-pill"><img src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/supabase/supabase-original.svg" alt="">Supabase</span>
-              </div>
-            </div>
-
-            <div class="skill-category">
-              <span class="skill-cat-label">Cloud & DevOps</span>
-              <div class="skills-wrap">
-                <span class="skill-pill"><img src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/amazonwebservices/amazonwebservices-original-wordmark.svg" alt="">AWS</span>
-                <span class="skill-pill"><img src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/googlecloud/googlecloud-original.svg" alt="">GCP</span>
-                <span class="skill-pill"><img src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/docker/docker-original.svg" alt="">Docker</span>
-                <span class="skill-pill"><img src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/kubernetes/kubernetes-original.svg" alt="">Kubernetes</span>
-                <span class="skill-pill"><img src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/git/git-original.svg" alt="">Git</span>
-                <span class="skill-pill"><img src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/githubactions/githubactions-original.svg" alt="">CI/CD</span>
-                <span class="skill-pill"><img src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/linux/linux-original.svg" alt="">Linux</span>
-                <span class="skill-pill"><img src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/bash/bash-original.svg" alt="">Bash</span>
-              </div>
-            </div>
-
-            <div class="skill-category">
-              <span class="skill-cat-label">AI / ML / LLM</span>
-              <div class="skills-wrap">
-                <span class="skill-pill"><img src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/pytorch/pytorch-original.svg" alt="">PyTorch</span>
-                <span class="skill-pill"><img src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/tensorflow/tensorflow-original.svg" alt="">TensorFlow</span>
-                <span class="skill-pill"><img src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/openai/openai-original.svg" alt="">OpenAI API</span>
-                <span class="skill-pill"><div class="skill-dot"></div>LangChain</span>
-                <span class="skill-pill"><div class="skill-dot"></div>LangGraph</span>
-                <span class="skill-pill"><div class="skill-dot"></div>RAG Systems</span>
-                <span class="skill-pill"><div class="skill-dot"></div>HuggingFace</span>
-                <span class="skill-pill"><div class="skill-dot"></div>Prompt Engineering</span>
-                <span class="skill-pill"><div class="skill-dot"></div>Agent Frameworks</span>
-                <span class="skill-pill"><div class="skill-dot"></div>XGBoost</span>
-                <span class="skill-pill"><div class="skill-dot"></div>Vector DBs</span>
-              </div>
-            </div>
-
-            <div class="skill-category">
-              <span class="skill-cat-label">Testing & Quality</span>
-              <div class="skills-wrap">
-                <span class="skill-pill"><img src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/jest/jest-plain.svg" alt="">Jest</span>
-                <span class="skill-pill"><img src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/pytest/pytest-original.svg" alt="">Pytest</span>
-                <span class="skill-pill"><img src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/junit/junit-original.svg" alt="">JUnit</span>
-                <span class="skill-pill"><div class="skill-dot"></div>Cypress</span>
-              </div>
-            </div>
-          </div>
-
-          <!-- Education -->
-          <div class="bento-card bento-edu" data-reveal>
-            <div class="card-label">Education</div>
-            <div class="edu-item">
-              <div class="edu-degree">B.Eng Software Engineering</div>
-              <div class="edu-school">York University</div>
-              <div class="edu-meta">GPA: 3.7/4.0 — Dean's List</div>
-            </div>
-            <div class="edu-item">
-              <div class="edu-degree">Relevant Coursework</div>
-              <div class="edu-school">Machine Learning, Data Structures, Software Development</div>
-              <div class="edu-meta">Expected May 2026</div>
-            </div>
-          </div>
-
-          <!-- Philosophy -->
-          <div class="bento-card bento-philosophy" data-reveal>
-            <div class="card-label">Philosophy</div>
-            <p class="philosophy-text">
-              I build things <em>from scratch</em> to understand them deeply — then ship them to solve <em>real problems</em>. Every project here is ground-up implementation, not a wrapper around someone else's library.
-            </p>
-          </div>
+<section class="block" id="about">
+  <div class="wrap">
+    <div class="section-head"><span class="num">04</span><h2>About</h2></div>
+    <div class="about">
+      <div>
+        <p class="say">I like understanding systems all the way down, so I build them myself and then prove they work.</p>
+        <p>Every project on this page ships with tests against an independent reference, and the numbers here come from those runs. At work I bring the same habit to product: AI features that real users depend on, backed by automated tests, benchmarks and evaluation of the model's output.</p>
+      </div>
+      <div class="side-cards">
+        <div class="plate edu">
+          <h4>Education</h4>
+          <div class="org">York University</div>
+          <p>B.Eng. in Software Engineering · GPA 3.7/4.0<br>Dean's List · Honour Roll · Entrance Scholarship</p>
+        </div>
+        <div class="plate">
+          <h4>Tools I use</h4>
+          <dl class="skills">
+            <div><dt>Languages</dt><dd>Python, TypeScript, JavaScript, C#, C++, SQL, Java, WGSL</dd></div>
+            <div><dt>AI / ML</dt><dd>PyTorch, Hugging Face, LLM inference, RAG, agents, evals, LangGraph, WebGPU</dd></div>
+            <div><dt>Backend</dt><dd>FastAPI, Node.js, .NET, PostgreSQL, Redis, Docker, Kubernetes, AWS, GCP</dd></div>
+            <div><dt>Frontend</dt><dd>React, Angular, Jest, Playwright, Pytest</dd></div>
+          </dl>
         </div>
       </div>
-    </section>
-
-    <!-- Projects -->
-    <section class="section" id="projects">
-      <div class="container">
-        <div class="section-header" data-reveal>
-          <div class="section-label">02 / Work</div>
-          <h2 class="section-title">Featured Projects</h2>
-          <p class="section-subtitle">Five deep-dive projects spanning AI interpretability, quantitative finance, distributed systems, and autonomous agents.</p>
-        </div>
-
-        <div class="projects-grid">
-          <!-- NeuronLens -->
-          <div class="project-card" style="--project-color: #a78bfa" data-reveal>
-            <div class="project-info">
-              <div>
-                <div class="project-num">01</div>
-                <div class="project-tags">
-                  <span class="project-tag">PyTorch</span>
-                  <span class="project-tag">Interpretability</span>
-                  <span class="project-tag">Circuits</span>
-                </div>
-                <h3 class="project-name">NeuronLens</h3>
-                <div class="project-role">Mechanistic Interpretability Toolkit</div>
-                <p class="project-desc">A from-scratch toolkit that reverse-engineers how transformers think. Implements activation patching, causal tracing, and automated circuit discovery on GPT-2. Interactive dashboard visualizes attention head specialization and information flow through residual streams.</p>
-                <div class="project-stats-row">
-                  <div class="project-stat">
-                    <div class="project-stat-value">17</div>
-                    <div class="project-stat-label">Circuits Found</div>
-                  </div>
-                  <div class="project-stat">
-                    <div class="project-stat-value">12</div>
-                    <div class="project-stat-label">Attention Heads</div>
-                  </div>
-                  <div class="project-stat">
-                    <div class="project-stat-value">95%</div>
-                    <div class="project-stat-label">Patch Accuracy</div>
-                  </div>
-                </div>
-              </div>
-              <a href="https://github.com/DilpreetBansi/neuronlens" target="_blank" class="project-link">View on GitHub <span>&#8599;</span></a>
-            </div>
-            <div class="project-visual" id="viz-neuronlens"></div>
-          </div>
-
-          <!-- LatencyArb -->
-          <div class="project-card" style="--project-color: #34d399" data-reveal>
-            <div class="project-info">
-              <div>
-                <div class="project-num">02</div>
-                <div class="project-tags">
-                  <span class="project-tag">C++17</span>
-                  <span class="project-tag">Python</span>
-                  <span class="project-tag">Finance</span>
-                </div>
-                <h3 class="project-name">LatencyArb</h3>
-                <div class="project-role">Statistical Arbitrage Engine</div>
-                <p class="project-desc">A high-performance pairs trading system with a C++ execution core and Python research layer. Implements cointegration testing, Kalman filter hedge ratios, and order book reconstruction. Lock-free SPSC queues, pre-allocated memory pools, and full backtesting with Monte Carlo risk analytics.</p>
-                <div class="project-stats-row">
-                  <div class="project-stat">
-                    <div class="project-stat-value">2.4</div>
-                    <div class="project-stat-label">Sharpe Ratio</div>
-                  </div>
-                  <div class="project-stat">
-                    <div class="project-stat-value">&lt;2ms</div>
-                    <div class="project-stat-label">Tick-to-Trade</div>
-                  </div>
-                  <div class="project-stat">
-                    <div class="project-stat-value">18%</div>
-                    <div class="project-stat-label">Annual Return</div>
-                  </div>
-                </div>
-              </div>
-              <a href="https://github.com/DilpreetBansi/latencyarb" target="_blank" class="project-link">View on GitHub <span>&#8599;</span></a>
-            </div>
-            <div class="project-visual" id="viz-latencyarb"></div>
-          </div>
-
-          <!-- TinyTrain -->
-          <div class="project-card" style="--project-color: #60a5fa" data-reveal>
-            <div class="project-info">
-              <div>
-                <div class="project-num">03</div>
-                <div class="project-tags">
-                  <span class="project-tag">Distributed</span>
-                  <span class="project-tag">CUDA</span>
-                  <span class="project-tag">PyTorch</span>
-                </div>
-                <h3 class="project-name">TinyTrain</h3>
-                <div class="project-role">Distributed LLM Training Framework</div>
-                <p class="project-desc">A complete distributed training framework implementing data parallelism, tensor parallelism, and pipeline parallelism from first principles. Custom ring-allreduce, mixed-precision training with dynamic loss scaling, and gradient checkpointing. Trains a 125M parameter GPT-2.</p>
-                <div class="project-stats-row">
-                  <div class="project-stat">
-                    <div class="project-stat-value">3.8x</div>
-                    <div class="project-stat-label">Scaling Efficiency</div>
-                  </div>
-                  <div class="project-stat">
-                    <div class="project-stat-value">125M</div>
-                    <div class="project-stat-label">Parameters</div>
-                  </div>
-                  <div class="project-stat">
-                    <div class="project-stat-value">4</div>
-                    <div class="project-stat-label">GPU Nodes</div>
-                  </div>
-                </div>
-              </div>
-              <a href="https://github.com/DilpreetBansi/tinytrain" target="_blank" class="project-link">View on GitHub <span>&#8599;</span></a>
-            </div>
-            <div class="project-visual" id="viz-tinytrain"></div>
-          </div>
-
-          <!-- AgentForge -->
-          <div class="project-card" style="--project-color: #fb923c" data-reveal>
-            <div class="project-info">
-              <div>
-                <div class="project-num">04</div>
-                <div class="project-tags">
-                  <span class="project-tag">LLM</span>
-                  <span class="project-tag">Agents</span>
-                  <span class="project-tag">Python</span>
-                </div>
-                <h3 class="project-name">AgentForge</h3>
-                <div class="project-role">Multi-Agent Orchestration</div>
-                <p class="project-desc">An orchestration platform where specialized LLM agents collaborate to solve complex tasks. Planner-Executor-Verifier architecture with dynamic task decomposition, tool use, and self-reflective error recovery. Supports Ollama, HuggingFace, or any OpenAI-compatible endpoint.</p>
-                <div class="project-stats-row">
-                  <div class="project-stat">
-                    <div class="project-stat-value">6</div>
-                    <div class="project-stat-label">Agent Types</div>
-                  </div>
-                  <div class="project-stat">
-                    <div class="project-stat-value">92%</div>
-                    <div class="project-stat-label">Task Success</div>
-                  </div>
-                  <div class="project-stat">
-                    <div class="project-stat-value">12</div>
-                    <div class="project-stat-label">Tools Integrated</div>
-                  </div>
-                </div>
-              </div>
-              <a href="https://github.com/DilpreetBansi/agentforge" target="_blank" class="project-link">View on GitHub <span>&#8599;</span></a>
-            </div>
-            <div class="project-visual" id="viz-agentforge"></div>
-          </div>
-
-          <!-- FlashServe -->
-          <div class="project-card" style="--project-color: #22d3ee" data-reveal>
-            <div class="project-info">
-              <div>
-                <div class="project-num">05</div>
-                <div class="project-tags">
-                  <span class="project-tag">CUDA</span>
-                  <span class="project-tag">Inference</span>
-                  <span class="project-tag">C++</span>
-                </div>
-                <h3 class="project-name">FlashServe</h3>
-                <div class="project-role">LLM Serving Engine</div>
-                <p class="project-desc">A from-scratch LLM serving engine with tiled flash attention, PagedAttention KV-cache, continuous batching, and speculative decoding. Llama-2 architecture with RMSNorm, SwiGLU, RoPE, and GQA. INT8/INT4 quantization with OpenAI-compatible FastAPI serving.</p>
-                <div class="project-stats-row">
-                  <div class="project-stat">
-                    <div class="project-stat-value">3.2x</div>
-                    <div class="project-stat-label">Throughput</div>
-                  </div>
-                  <div class="project-stat">
-                    <div class="project-stat-value">40ms</div>
-                    <div class="project-stat-label">TTFT Latency</div>
-                  </div>
-                  <div class="project-stat">
-                    <div class="project-stat-value">INT4</div>
-                    <div class="project-stat-label">Quantization</div>
-                  </div>
-                </div>
-              </div>
-              <a href="https://github.com/DilpreetBansi/flashserve" target="_blank" class="project-link">View on GitHub <span>&#8599;</span></a>
-            </div>
-            <div class="project-visual" id="viz-flashserve"></div>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- Experience -->
-    <section class="section" id="experience">
-      <div class="container">
-        <div class="section-header" data-reveal>
-          <div class="section-label">03 / Experience</div>
-          <h2 class="section-title">Where I've Worked</h2>
-        </div>
-
-        <div class="timeline" data-reveal>
-          <div class="timeline-item">
-            <div class="timeline-title">Software Engineer (Full-Stack)</div>
-            <div class="timeline-company">Tegra Lumber</div>
-            <div class="timeline-date">Jan 2024 — Present</div>
-            <div class="timeline-desc">
-              Owned and launched a customer order portal from scratch (<strong>React + TypeScript, Node/Express, PostgreSQL</strong>) with real-time pricing, availability, and hold-for-pickup scheduling — drove <strong>14% of orders online</strong> in six weeks and cut phone traffic 35%. Built an inventory and yard management system tracking SKUs by length, grade, treatment, and bin location; reduced cycle-count time 45% and <strong>cut stockouts 28%</strong>. Designed a pricing and quoting engine handling board-feet to linear-feet conversions, tiered and contract pricing — <strong>cut quote turnaround from 6 hours to 5 minutes</strong>. Created a SKU normalization service improving search accuracy 37%. Established CI/CD with GitHub Actions, Docker, and automated migrations; raised test coverage to <strong>82%</strong> preventing 14 regressions. Shipped <strong>14 releases with 93% adoption</strong>.
-            </div>
-          </div>
-
-          <div class="timeline-item">
-            <div class="timeline-title">Business Support Clerk</div>
-            <div class="timeline-company">Canada Border Services Agency</div>
-            <div class="timeline-date">Jun 2025 — Aug 2025</div>
-            <div class="timeline-desc">
-              Supported the Partners in Protection (PIP) program with <strong>3,500+ registered members</strong>. Identified gaps in how deliverables were tracked and designed Excel-based tracking tools from scratch, boosting task completion efficiency by <strong>30%</strong>. Facilitated weekly team meetings, documenting key decisions and following up on all action items to achieve <strong>100% closure</strong> of outstanding points.
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- Contact -->
-    <section class="section contact-section" id="contact">
-      <div class="container">
-        <div data-reveal>
-          <div class="section-label" style="text-align:center">04 / Contact</div>
-          <h2 class="contact-heading">Let's Build Together</h2>
-          <p class="contact-sub">Always open to interesting conversations and collaborations.</p>
-        </div>
-
-        <div class="contact-grid" data-reveal>
-          <a href="mailto:bansidil@my.yorku.ca" class="contact-card">
-            <svg viewBox="0 0 24 24"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
-            <div class="contact-card-label">Email</div>
-            <div class="contact-card-value">bansidil@my.yorku.ca</div>
-          </a>
-          <a href="https://linkedin.com/in/Dilpreet-Bansi/" target="_blank" class="contact-card">
-            <svg viewBox="0 0 24 24"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"/><rect x="2" y="9" width="4" height="12"/><circle cx="4" cy="4" r="2"/></svg>
-            <div class="contact-card-label">LinkedIn</div>
-            <div class="contact-card-value">Dilpreet-Bansi</div>
-          </a>
-          <a href="https://github.com/DilpreetBansi" target="_blank" class="contact-card">
-            <svg viewBox="0 0 24 24"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"/></svg>
-            <div class="contact-card-label">GitHub</div>
-            <div class="contact-card-value">DilpreetBansi</div>
-          </a>
-        </div>
-      </div>
-    </section>
-  </main>
-
-  <footer>
-    <div class="container">&copy; 2026 Dilpreet Singh Bansi</div>
-  </footer>
-
-  <script>
-    // ===== LOADER =====
-    const loaderScreen = document.getElementById('loaderScreen');
-    const loaderCounter = document.getElementById('loaderCounter');
-    let count = 0;
-    const ci = setInterval(() => {
-      count += Math.random() * 25;
-      loaderCounter.textContent = Math.min(Math.floor(count), 99);
-      if (count >= 100) clearInterval(ci);
-    }, 80);
-
-    window.addEventListener('load', () => {
-      clearInterval(ci);
-      loaderCounter.textContent = '100';
-      setTimeout(() => loaderScreen.classList.add('hidden'), 600);
-    });
-
-    // ===== MOBILE NAV =====
-    document.getElementById('navToggle').addEventListener('click', () => {
-      document.getElementById('navLinks').classList.toggle('open');
-    });
-
-    // ===== SCROLL PROGRESS =====
-    const progressBar = document.getElementById('scrollProgress');
-    window.addEventListener('scroll', () => {
-      const scrollTop = window.scrollY;
-      const docHeight = document.documentElement.scrollHeight - window.innerHeight;
-      progressBar.style.width = (scrollTop / docHeight * 100) + '%';
-    });
-
-    // ===== NAV SCROLL EFFECT =====
-    const mainNav = document.getElementById('mainNav');
-    window.addEventListener('scroll', () => {
-      mainNav.classList.toggle('scrolled', window.scrollY > 50);
-    });
-
-    // ===== SMOOTH SCROLL =====
-    document.querySelectorAll('a[href^="#"]').forEach(a => {
-      a.addEventListener('click', e => {
-        e.preventDefault();
-        const href = a.getAttribute('href');
-        if (href === '#') {
-          window.scrollTo({ top: 0, behavior: 'smooth' });
-        } else {
-          const t = document.querySelector(href);
-          if (t) t.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        }
-        document.getElementById('navLinks').classList.remove('open');
-      });
-    });
-
-    // ===== SCROLL REVEAL =====
-    const revealObs = new IntersectionObserver((entries) => {
-      entries.forEach(e => {
-        if (e.isIntersecting) {
-          e.target.classList.add('revealed');
-          revealObs.unobserve(e.target);
-        }
-      });
-    }, { threshold: 0.08, rootMargin: '0px 0px -40px 0px' });
-    document.querySelectorAll('[data-reveal]').forEach(el => revealObs.observe(el));
-
-    // ===== COUNTER ANIMATION =====
-    const countObs = new IntersectionObserver((entries) => {
-      entries.forEach(e => {
-        if (e.isIntersecting) {
-          const el = e.target;
-          const target = parseInt(el.dataset.target);
-          let cur = 0;
-          const inc = target / 40;
-          const iv = setInterval(() => {
-            cur += inc;
-            if (cur >= target) { el.textContent = target; clearInterval(iv); }
-            else el.textContent = Math.floor(cur);
-          }, 25);
-          countObs.unobserve(el);
-        }
-      });
-    }, { threshold: 0.5 });
-    document.querySelectorAll('.counter').forEach(c => countObs.observe(c));
-
-    // ===== ROLE TICKER =====
-    const roles = ['Building interpretable AI systems', 'Optimizing high-performance computing', 'Designing distributed architectures', 'Architecting LLM inference engines', 'Scaling multi-agent orchestration', 'Shipping production software end-to-end'];
-    const tickerEl = document.getElementById('roleTicker');
-    const tickerSpan = tickerEl.querySelector('span');
-    let ri = 0;
-    setInterval(() => {
-      ri = (ri + 1) % roles.length;
-      tickerSpan.style.transform = 'translateY(-100%)';
-      tickerSpan.style.opacity = '0';
-      setTimeout(() => {
-        tickerSpan.textContent = roles[ri];
-        tickerSpan.style.transform = 'translateY(100%)';
-        requestAnimationFrame(() => {
-          tickerSpan.style.transform = 'translateY(0)';
-          tickerSpan.style.opacity = '1';
-        });
-      }, 300);
-    }, 3000);
-
-    // ===== BENTO CARD SPOTLIGHT =====
-    document.querySelectorAll('.bento-card').forEach(card => {
-      card.addEventListener('mousemove', e => {
-        const rect = card.getBoundingClientRect();
-        card.style.setProperty('--mouse-x', ((e.clientX - rect.left) / rect.width * 100) + '%');
-        card.style.setProperty('--mouse-y', ((e.clientY - rect.top) / rect.height * 100) + '%');
-      });
-    });
-
-    // ===== THREE.JS HERO BACKGROUND =====
-    (function() {
-      const canvas = document.getElementById('hero-canvas');
-      const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
-      renderer.setSize(window.innerWidth, window.innerHeight);
-      renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-
-      const scene = new THREE.Scene();
-      const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
-      camera.position.z = 30;
-
-      // Particle field
-      const particleCount = 800;
-      const positions = new Float32Array(particleCount * 3);
-      const velocities = [];
-      const spread = 60;
-
-      for (let i = 0; i < particleCount; i++) {
-        positions[i * 3] = (Math.random() - 0.5) * spread;
-        positions[i * 3 + 1] = (Math.random() - 0.5) * spread;
-        positions[i * 3 + 2] = (Math.random() - 0.5) * spread;
-        velocities.push({
-          x: (Math.random() - 0.5) * 0.003,
-          y: (Math.random() - 0.5) * 0.003,
-          z: (Math.random() - 0.5) * 0.003
-        });
-      }
-
-      const particleGeo = new THREE.BufferGeometry();
-      particleGeo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-
-      const particleMat = new THREE.PointsMaterial({
-        color: 0x8B9A46,
-        size: 0.08,
-        transparent: true,
-        opacity: 0.6,
-        sizeAttenuation: true
-      });
-
-      const particles = new THREE.Points(particleGeo, particleMat);
-      scene.add(particles);
-
-      // Connection lines
-      const lineGeo = new THREE.BufferGeometry();
-      const linePositions = new Float32Array(particleCount * particleCount * 6);
-      lineGeo.setAttribute('position', new THREE.BufferAttribute(linePositions, 3));
-      const lineMat = new THREE.LineBasicMaterial({ color: 0x8B9A46, transparent: true, opacity: 0.06 });
-      const lines = new THREE.LineSegments(lineGeo, lineMat);
-      scene.add(lines);
-
-      let mouseX = 0, mouseY = 0;
-      document.addEventListener('mousemove', e => {
-        mouseX = (e.clientX / window.innerWidth - 0.5) * 2;
-        mouseY = (e.clientY / window.innerHeight - 0.5) * 2;
-      });
-
-      function animate() {
-        requestAnimationFrame(animate);
-
-        const pos = particleGeo.attributes.position.array;
-        for (let i = 0; i < particleCount; i++) {
-          pos[i * 3] += velocities[i].x;
-          pos[i * 3 + 1] += velocities[i].y;
-          pos[i * 3 + 2] += velocities[i].z;
-
-          // Wrap around
-          for (let j = 0; j < 3; j++) {
-            if (pos[i * 3 + j] > spread / 2) pos[i * 3 + j] = -spread / 2;
-            if (pos[i * 3 + j] < -spread / 2) pos[i * 3 + j] = spread / 2;
-          }
-        }
-        particleGeo.attributes.position.needsUpdate = true;
-
-        // Update connections (only nearby particles)
-        let lineIdx = 0;
-        const maxDist = 4;
-        const lp = lineGeo.attributes.position.array;
-        for (let i = 0; i < Math.min(particleCount, 200); i++) {
-          for (let j = i + 1; j < Math.min(particleCount, 200); j++) {
-            const dx = pos[i*3] - pos[j*3];
-            const dy = pos[i*3+1] - pos[j*3+1];
-            const dz = pos[i*3+2] - pos[j*3+2];
-            const dist = dx*dx + dy*dy + dz*dz;
-            if (dist < maxDist * maxDist) {
-              lp[lineIdx++] = pos[i*3]; lp[lineIdx++] = pos[i*3+1]; lp[lineIdx++] = pos[i*3+2];
-              lp[lineIdx++] = pos[j*3]; lp[lineIdx++] = pos[j*3+1]; lp[lineIdx++] = pos[j*3+2];
-            }
-          }
-        }
-        // Clear remaining
-        for (let i = lineIdx; i < lp.length; i++) lp[i] = 0;
-        lineGeo.attributes.position.needsUpdate = true;
-        lineGeo.setDrawRange(0, lineIdx / 3);
-
-        // Camera follows mouse gently
-        camera.position.x += (mouseX * 3 - camera.position.x) * 0.02;
-        camera.position.y += (-mouseY * 3 - camera.position.y) * 0.02;
-        camera.lookAt(0, 0, 0);
-
-        // Slow rotation
-        particles.rotation.y += 0.0003;
-        lines.rotation.y += 0.0003;
-
-        renderer.render(scene, camera);
-      }
-      animate();
-
-      window.addEventListener('resize', () => {
-        camera.aspect = window.innerWidth / window.innerHeight;
-        camera.updateProjectionMatrix();
-        renderer.setSize(window.innerWidth, window.innerHeight);
-      });
-
-      // Fade canvas based on scroll
-      window.addEventListener('scroll', () => {
-        const opacity = Math.max(0, 1 - window.scrollY / (window.innerHeight * 0.8));
-        canvas.style.opacity = opacity;
-      });
-    })();
-
-    // ===== PROJECT VISUALIZATIONS (Three.js) =====
-    function createProjectViz(containerId, color, type) {
-      const container = document.getElementById(containerId);
-      if (!container) return;
-
-      const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
-      const w = container.clientWidth || 400;
-      const h = container.clientHeight || 300;
-      renderer.setSize(w, h);
-      renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-      container.appendChild(renderer.domElement);
-
-      const scene = new THREE.Scene();
-      const camera = new THREE.PerspectiveCamera(50, w / h, 0.1, 100);
-      camera.position.z = 6;
-
-      const col = new THREE.Color(color);
-
-      if (type === 'network') {
-        // Neural network nodes + connections
-        const nodes = [];
-        const layers = [4, 6, 6, 4];
-        layers.forEach((count, li) => {
-          for (let i = 0; i < count; i++) {
-            const geo = new THREE.SphereGeometry(0.08, 16, 16);
-            const mat = new THREE.MeshBasicMaterial({ color: col, transparent: true, opacity: 0.8 });
-            const mesh = new THREE.Mesh(geo, mat);
-            mesh.position.x = (li - 1.5) * 2;
-            mesh.position.y = (i - (count-1)/2) * 0.7;
-            mesh.position.z = 0;
-            mesh.userData = { baseY: mesh.position.y, phase: Math.random() * Math.PI * 2 };
-            scene.add(mesh);
-            nodes.push({ mesh, layer: li, index: i });
-          }
-        });
-
-        // Connections
-        const lineMat = new THREE.LineBasicMaterial({ color: col, transparent: true, opacity: 0.15 });
-        let offset = 0;
-        for (let li = 0; li < layers.length - 1; li++) {
-          const currentLayer = nodes.filter(n => n.layer === li);
-          const nextLayer = nodes.filter(n => n.layer === li + 1);
-          currentLayer.forEach(a => {
-            nextLayer.forEach(b => {
-              const geo = new THREE.BufferGeometry().setFromPoints([a.mesh.position.clone(), b.mesh.position.clone()]);
-              const line = new THREE.Line(geo, lineMat);
-              scene.add(line);
-            });
-          });
-        }
-
-        function anim(t) {
-          requestAnimationFrame(anim);
-          nodes.forEach(n => {
-            n.mesh.position.y = n.mesh.userData.baseY + Math.sin(t * 0.001 + n.mesh.userData.phase) * 0.1;
-            n.mesh.scale.setScalar(1 + Math.sin(t * 0.002 + n.mesh.userData.phase) * 0.2);
-          });
-          scene.rotation.y = Math.sin(t * 0.0003) * 0.15;
-          renderer.render(scene, camera);
-        }
-        requestAnimationFrame(anim);
-      }
-
-      else if (type === 'graph') {
-        // Equity curve / financial graph
-        const points = [];
-        let val = 0;
-        for (let i = 0; i < 80; i++) {
-          val += (Math.random() - 0.42) * 0.15;
-          points.push(new THREE.Vector3((i/80 - 0.5) * 6, val, 0));
-        }
-        const curve = new THREE.BufferGeometry().setFromPoints(points);
-        const curveMat = new THREE.LineBasicMaterial({ color: col, linewidth: 2 });
-        const curveL = new THREE.Line(curve, curveMat);
-        scene.add(curveL);
-
-        // Glow dots at peaks
-        points.forEach((p, i) => {
-          if (i > 0 && i < points.length - 1 && p.y > points[i-1].y && p.y > points[i+1].y) {
-            const dot = new THREE.Mesh(
-              new THREE.SphereGeometry(0.06, 8, 8),
-              new THREE.MeshBasicMaterial({ color: col })
-            );
-            dot.position.copy(p);
-            scene.add(dot);
-          }
-        });
-
-        // Grid lines
-        for (let i = -3; i <= 3; i++) {
-          const gp = [new THREE.Vector3(-3, i * 0.5, -0.1), new THREE.Vector3(3, i * 0.5, -0.1)];
-          scene.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(gp), new THREE.LineBasicMaterial({ color: col, transparent: true, opacity: 0.05 })));
-        }
-
-        camera.position.z = 5;
-        function anim(t) {
-          requestAnimationFrame(anim);
-          scene.rotation.y = Math.sin(t * 0.0004) * 0.08;
-          renderer.render(scene, camera);
-        }
-        requestAnimationFrame(anim);
-      }
-
-      else if (type === 'grid') {
-        // GPU grid for distributed training
-        const gridSize = 4;
-        const cubes = [];
-        for (let x = 0; x < gridSize; x++) {
-          for (let z = 0; z < gridSize; z++) {
-            const geo = new THREE.BoxGeometry(0.5, 0.5, 0.5);
-            const edges = new THREE.EdgesGeometry(geo);
-            const mat = new THREE.LineBasicMaterial({ color: col, transparent: true, opacity: 0.5 });
-            const mesh = new THREE.LineSegments(edges, mat);
-            mesh.position.set((x - 1.5) * 1.2, 0, (z - 1.5) * 1.2);
-            mesh.userData = { phase: (x + z) * 0.5 };
-            scene.add(mesh);
-            cubes.push(mesh);
-          }
-        }
-
-        // Ring connections
-        const ringMat = new THREE.LineBasicMaterial({ color: col, transparent: true, opacity: 0.2 });
-        for (let i = 0; i < cubes.length; i++) {
-          const next = cubes[(i + 1) % cubes.length];
-          const pts = [cubes[i].position.clone(), next.position.clone()];
-          pts[0].y += 0.4; pts[1].y += 0.4;
-          scene.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts), ringMat));
-        }
-
-        camera.position.set(3, 3, 3);
-        camera.lookAt(0, 0, 0);
-        function anim(t) {
-          requestAnimationFrame(anim);
-          cubes.forEach(c => {
-            c.position.y = Math.sin(t * 0.002 + c.userData.phase) * 0.3;
-            c.rotation.y = t * 0.0008;
-          });
-          renderer.render(scene, camera);
-        }
-        requestAnimationFrame(anim);
-      }
-
-      else if (type === 'agents') {
-        // Agent nodes orbiting
-        const center = new THREE.Mesh(
-          new THREE.SphereGeometry(0.3, 32, 32),
-          new THREE.MeshBasicMaterial({ color: col, transparent: true, opacity: 0.6 })
-        );
-        scene.add(center);
-
-        // Ring around center
-        const ringGeo = new THREE.RingGeometry(1.8, 1.85, 64);
-        const ringMat = new THREE.MeshBasicMaterial({ color: col, transparent: true, opacity: 0.1, side: THREE.DoubleSide });
-        const ring = new THREE.Mesh(ringGeo, ringMat);
-        ring.rotation.x = Math.PI / 2;
-        scene.add(ring);
-
-        const agentCount = 6;
-        const agents = [];
-        for (let i = 0; i < agentCount; i++) {
-          const a = new THREE.Mesh(
-            new THREE.SphereGeometry(0.12, 16, 16),
-            new THREE.MeshBasicMaterial({ color: col })
-          );
-          a.userData = { angle: (i / agentCount) * Math.PI * 2, radius: 1.8, speed: 0.3 + Math.random() * 0.2 };
-          scene.add(a);
-          agents.push(a);
-
-          // Connection line to center
-          const lineGeo = new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(), new THREE.Vector3()]);
-          const line = new THREE.Line(lineGeo, new THREE.LineBasicMaterial({ color: col, transparent: true, opacity: 0.15 }));
-          scene.add(line);
-          a.userData.line = line;
-        }
-
-        camera.position.z = 5;
-        function anim(t) {
-          requestAnimationFrame(anim);
-          center.scale.setScalar(1 + Math.sin(t * 0.003) * 0.1);
-          agents.forEach(a => {
-            a.userData.angle += a.userData.speed * 0.01;
-            a.position.x = Math.cos(a.userData.angle) * a.userData.radius;
-            a.position.z = Math.sin(a.userData.angle) * a.userData.radius;
-            a.position.y = Math.sin(t * 0.002 + a.userData.angle) * 0.3;
-
-            const lp = a.userData.line.geometry.attributes.position.array;
-            lp[0] = 0; lp[1] = 0; lp[2] = 0;
-            lp[3] = a.position.x; lp[4] = a.position.y; lp[5] = a.position.z;
-            a.userData.line.geometry.attributes.position.needsUpdate = true;
-          });
-          scene.rotation.y = t * 0.0002;
-          renderer.render(scene, camera);
-        }
-        requestAnimationFrame(anim);
-      }
-
-      else if (type === 'stream') {
-        // Data stream / inference pipeline
-        const streams = [];
-        for (let s = 0; s < 5; s++) {
-          const points = [];
-          for (let i = 0; i < 50; i++) {
-            points.push(new THREE.Vector3(
-              (i/50 - 0.5) * 8,
-              (s - 2) * 0.8 + Math.sin(i * 0.3) * 0.2,
-              0
-            ));
-          }
-          const geo = new THREE.BufferGeometry().setFromPoints(points);
-          const mat = new THREE.LineBasicMaterial({ color: col, transparent: true, opacity: 0.2 + s * 0.05 });
-          const line = new THREE.Line(geo, mat);
-          scene.add(line);
-          streams.push({ line, geo, basePoints: points.map(p => p.clone()), offset: s * 0.5 });
-
-          // Moving dots
-          for (let d = 0; d < 3; d++) {
-            const dot = new THREE.Mesh(
-              new THREE.SphereGeometry(0.05, 8, 8),
-              new THREE.MeshBasicMaterial({ color: col, transparent: true, opacity: 0.8 })
-            );
-            dot.userData = { stream: s, t: d / 3, speed: 0.0005 + Math.random() * 0.0003 };
-            scene.add(dot);
-            streams.push({ dot });
-          }
-        }
-
-        camera.position.z = 5;
-        function anim(t) {
-          requestAnimationFrame(anim);
-          streams.forEach(s => {
-            if (s.dot) {
-              s.dot.userData.t += s.dot.userData.speed;
-              if (s.dot.userData.t > 1) s.dot.userData.t = 0;
-              const x = (s.dot.userData.t - 0.5) * 8;
-              const y = (s.dot.userData.stream - 2) * 0.8 + Math.sin(t * 0.002 + s.dot.userData.stream) * 0.2;
-              s.dot.position.set(x, y, 0);
-            }
-            if (s.geo) {
-              const arr = s.geo.attributes.position.array;
-              for (let i = 0; i < s.basePoints.length; i++) {
-                arr[i*3+1] = s.basePoints[i].y + Math.sin(t * 0.001 + i * 0.2 + s.offset) * 0.15;
-              }
-              s.geo.attributes.position.needsUpdate = true;
-            }
-          });
-          scene.rotation.y = Math.sin(t * 0.0003) * 0.1;
-          renderer.render(scene, camera);
-        }
-        requestAnimationFrame(anim);
-      }
-
-      // Resize handler
-      const ro = new ResizeObserver(() => {
-        const nw = container.clientWidth;
-        const nh = container.clientHeight;
-        renderer.setSize(nw, nh);
-        camera.aspect = nw / nh;
-        camera.updateProjectionMatrix();
-      });
-      ro.observe(container);
-    }
-
-    // Initialize project visualizations after page loads
-    window.addEventListener('load', () => {
-      setTimeout(() => {
-        createProjectViz('viz-neuronlens', '#a78bfa', 'network');
-        createProjectViz('viz-latencyarb', '#34d399', 'graph');
-        createProjectViz('viz-tinytrain', '#60a5fa', 'grid');
-        createProjectViz('viz-agentforge', '#fb923c', 'agents');
-        createProjectViz('viz-flashserve', '#22d3ee', 'stream');
-      }, 100);
-    });
-  </script>
+    </div>
+  </div>
+</section>
+</main>
+
+<footer class="contact">
+  <div class="wrap">
+    <h2>Let's <em>talk.</em></h2>
+    <p>I'm always glad to talk about inference engines, training systems, or shipping AI products people rely on.</p>
+    <a class="big" href="mailto:bansidilpreet@gmail.com">bansidilpreet@gmail.com</a>
+    <ul class="links">
+      <li><a href="https://www.linkedin.com/in/dilpreet-bansi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2M3 13h18"/></svg>LinkedIn</a></li>
+      <li><a href="https://github.com/DilpreetBansi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 7l-5 5 5 5M16 7l5 5-5 5M14 4l-4 16"/></svg>GitHub</a></li>
+      <li><a href="assets/Dilpreet_Singh_Bansi_Resume.pdf"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5M9 13h6M9 17h6"/></svg>Résumé (PDF)</a></li>
+    </ul>
+    <div class="fine"><span>© 2026 Dilpreet Singh Bansi</span><span>Figures drawn from each project's own runs</span></div>
+  </div>
+</footer>
 </body>
 </html>
