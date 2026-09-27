@@ -50,16 +50,12 @@ a:hover { color: var(--ink); }
 .nav { position: sticky; top: 0; z-index: 10; background: rgba(244, 241, 234, 0.9); backdrop-filter: blur(8px); border-bottom: 1px solid var(--rule); }
 .nav .wrap { display: flex; align-items: center; justify-content: space-between; height: 72px; }
 .mark { display: flex; align-items: center; gap: 13px; color: var(--ink); text-decoration: none; white-space: nowrap; }
-.mark .logo { width: 30px; height: 30px; flex: none; display: block; }
-.mark .logo rect { transition: fill 0.28s ease; transition-delay: calc(var(--r) * 45ms); }
-.mark .logo .u { fill: var(--rule); fill-opacity: 0.62; }
-.mark .logo .l { fill: var(--ink); }
-.mark .logo .d { fill: var(--accent); }
-.mark:hover .logo .l { fill: var(--accent); }
-.mark:hover .logo .d { fill: var(--ink); }
+.mark .logo { width: 36px; height: 36px; flex: none; display: block; }
+.mark .logo .tile, .mark .logo .lb { transition: fill 0.2s ease; }
+.mark:hover .logo .tile { fill: var(--accent); }
+.mark:hover .logo .lb { fill: #fff; }
 .mark .name { font: 400 25px/1 var(--serif); letter-spacing: 0.005em; padding-top: 2px; }
 .mark:hover { color: var(--ink); }
-@media (prefers-reduced-motion: reduce) { .mark .logo rect { transition: none; } }
 .nav nav { display: flex; align-items: center; gap: 8px; }
 .nav nav a { color: var(--ink-2); text-decoration: none; font-size: 15px; padding: 10px 12px; border-radius: 8px; white-space: nowrap; }
 .nav nav a:hover { color: var(--ink); background: var(--paper-2); }
@@ -190,7 +186,7 @@ section.block { padding: 104px 0 16px; }
 @media (max-width: 560px) {
   body { font-size: 16px; }
   .mark { gap: 11px; }
-  .mark .logo { width: 27px; height: 27px; }
+  .mark .logo { width: 32px; height: 32px; }
   .mark .name { font-size: 22px; }
   .wrap { padding: 0 20px; }
   .nav nav a.keep { display: none; }
@@ -215,7 +211,7 @@ section.block { padding: 104px 0 16px; }
 
 <header class="nav">
   <div class="wrap">
-    <a class="mark" href="#top" aria-label="Dilpreet Singh Bansi, back to top"><svg class="logo" viewBox="0 0 32 32" aria-hidden="true"><rect class="d" style="--r:0" x="0.0" y="0.0" width="6.5" height="6.5" rx="1.7"/><rect class="u" style="--r:0" x="8.5" y="0.0" width="6.5" height="6.5" rx="1.7"/><rect class="u" style="--r:0" x="17.0" y="0.0" width="6.5" height="6.5" rx="1.7"/><rect class="u" style="--r:0" x="25.5" y="0.0" width="6.5" height="6.5" rx="1.7"/><rect class="l" style="--r:1" x="0.0" y="8.5" width="6.5" height="6.5" rx="1.7"/><rect class="d" style="--r:1" x="8.5" y="8.5" width="6.5" height="6.5" rx="1.7"/><rect class="u" style="--r:1" x="17.0" y="8.5" width="6.5" height="6.5" rx="1.7"/><rect class="u" style="--r:1" x="25.5" y="8.5" width="6.5" height="6.5" rx="1.7"/><rect class="l" style="--r:2" x="0.0" y="17.0" width="6.5" height="6.5" rx="1.7"/><rect class="l" style="--r:2" x="8.5" y="17.0" width="6.5" height="6.5" rx="1.7"/><rect class="d" style="--r:2" x="17.0" y="17.0" width="6.5" height="6.5" rx="1.7"/><rect class="u" style="--r:2" x="25.5" y="17.0" width="6.5" height="6.5" rx="1.7"/><rect class="l" style="--r:3" x="0.0" y="25.5" width="6.5" height="6.5" rx="1.7"/><rect class="l" style="--r:3" x="8.5" y="25.5" width="6.5" height="6.5" rx="1.7"/><rect class="l" style="--r:3" x="17.0" y="25.5" width="6.5" height="6.5" rx="1.7"/><rect class="d" style="--r:3" x="25.5" y="25.5" width="6.5" height="6.5" rx="1.7"/></svg><span class="name">Dilpreet Singh Bansi</span></a>
+    <a class="mark" href="#top" aria-label="Dilpreet Singh Bansi, back to top"><svg class="logo" viewBox="0 0 36 36" aria-hidden="true"><rect class="tile" width="36" height="36" rx="10" fill="#16181d"/><path class="ld" fill="#f4f1ea" d="M7.29 26.48Q6.95 26.48 6.95 26.23Q6.95 26.02 7.25 25.95L7.78 25.86Q8.56 25.72 8.56 24.96V11.44Q8.56 10.96 8.41 10.79Q8.26 10.63 7.78 10.54L7.25 10.45Q6.95 10.38 6.95 10.17Q6.95 9.92 7.29 9.92H11.94Q13.73 9.92 15.04 10.97Q16.36 12.01 17.07 13.9Q17.78 15.79 17.78 18.27Q17.78 20.78 17.03 22.62Q16.29 24.46 14.93 25.47Q13.57 26.48 11.71 26.48ZM11.8 25.88Q13.85 25.88 14.92 23.93Q15.99 21.97 15.99 18.27Q15.99 14.59 14.96 12.55Q13.94 10.52 11.94 10.52Q10.19 10.52 10.19 12.2V24.2Q10.19 25.12 10.57 25.5Q10.95 25.88 11.8 25.88Z"/><path class="lb" fill="#9fb0ff" d="M17.39 26.48Q17.07 26.48 17.07 26.25Q17.07 26 17.53 25.93L17.99 25.86Q18.49 25.79 18.68 25.62Q18.86 25.45 18.98 24.96L22.11 11.44Q22.22 10.98 22.11 10.81Q21.99 10.63 21.53 10.54L21.07 10.45Q20.77 10.38 20.77 10.2Q20.77 9.92 21.19 9.92H25.58Q27.12 9.92 28.09 10.77Q29.05 11.62 29.05 12.98Q29.05 14.27 28.13 15.42Q27.21 16.57 25.67 17.1Q25.56 17.12 25.56 17.2Q25.56 17.28 25.67 17.33Q26.87 17.76 27.49 18.73Q28.11 19.7 28.11 20.98Q28.11 22.5 27.3 23.75Q26.5 25.01 25.13 25.74Q23.76 26.48 22.08 26.48ZM23.69 17.03Q24.7 17.03 25.54 16.5Q26.38 15.97 26.89 15.06Q27.4 14.15 27.4 13.07Q27.4 11.85 26.79 11.17Q26.18 10.5 25.1 10.5Q23.9 10.5 23.69 11.42L22.7 15.76Q22.54 16.45 22.77 16.74Q23 17.03 23.69 17.03ZM22.15 25.91Q23.37 25.91 24.34 25.25Q25.3 24.59 25.87 23.44Q26.43 22.29 26.43 20.87Q26.43 19.3 25.7 18.45Q24.98 17.6 23.67 17.6Q22.24 17.6 21.99 18.82L20.73 24.32Q20.36 25.91 22.15 25.91Z"/></svg><span class="name">Dilpreet Singh Bansi</span></a>
     <nav aria-label="Sections">
       <a href="#work">Work</a>
       <a href="#experience">Experience</a>
